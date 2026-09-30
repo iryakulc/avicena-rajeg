@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMK Avicena Rajeg — Portal Terpadu</title>
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    :root {
+      --navy-deep: #0f172a;
+      --royal: #2563eb;
+      --emerald: #10b981;
+      --bg-main: #f8fafc;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+      background-color: var(--bg-main);
+      color: #334155;
+    }
+    .glass-nav {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .hero-section {
+      background: linear-gradient(135deg, var(--navy-deep) 0%, #1e293b 100%);
+      color: #ffffff;
+      padding: 90px 0 60px 0;
+    }
+    .card-custom {
+      border: none;
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: transform 0.2s;
+    }
+    .card-custom:hover {
+      transform: translateY(-3px);
+    }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+      z-index: 1030;
+      display: none;
+    }
+    .bottom-nav .nav-link {
+      color: #64748b;
+      text-align: center;
+      font-size: 0.75rem;
+      padding: 10px 0;
+    }
+    .bottom-nav .nav-link.active {
+      color: var(--royal);
+    }
+    .bottom-nav .nav-link i {
+      font-size: 1.25rem;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .view-pane { display: none; padding-bottom: 80px; }
+    .view-pane.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR UTAMA -->
+  <nav class="navbar navbar-expand-lg navbar-dark glass-nav sticky-top">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="#" onclick="switchView('landing')">
+        <i class="fa-solid fa-graduation-cap text-primary"></i> SMK AVICENA RAJEG
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav align-items-center gap-3">
+          <li class="nav-item"><a class="nav-link" href="#" onclick="switchView('landing')">Beranda</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" onclick="openAuthModal('guru')">Portal Guru</a></li>
+          <li class="nav-item"><a class="nav-link btn btn-primary text-white px-3 py-1.5" href="#" onclick="openAuthModal('siswa')">Portal Siswa</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle small text-muted" href="#" role="button" data-bs-toggle="dropdown">Mode: <span id="modeLabel">Web</span></a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="#" onclick="setAppMode('web')">Web (Apps Script Live)</a></li>
+              <li><a class="dropdown-item" href="#" onclick="setAppMode('local')">Local (Offline Fallback)</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- LANDING PAGE VIEW -->
+  <div id="view-landing" class="view-pane active">
+    <header class="hero-section text-center">
+      <div class="container">
+        <span class="badge bg-success mb-3 px-3 py-2 rounded-pill">Akreditasi B — Unggul & Profesional</span>
+        <h1 class="display-5 fw-bold mb-3">Portal Akademik Terpadu</h1>
+        <p class="lead text-secondary mb-4 mx-auto" style="max-width: 600px;">Platform manajemen pembelajaran, absensi, dan tugas harian SMK Avicena Rajeg berbasis Google Spreadsheet Cloud.</p>
+        <div class="d-flex justify-content-center gap-3">
+          <button class="btn btn-primary btn-lg px-4" onclick="openAuthModal('siswa')">Masuk Portal Siswa</button>
+          <button class="btn btn-outline-light btn-lg px-4" onclick="openAuthModal('guru')">Masuk Portal Guru</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="container my-5">
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card card-custom p-4 h-100">
+            <div class="text-primary mb-3"><i class="fa-solid fa-laptop-code fa-2x"></i></div>
+            <h4>Program Keahlian Excellent (+)</h4>
+            <p class="text-muted small">Jam belajar intensif pukul 07.00 - 14.00 WIB. Jurusan: TKJ, MP, DKV.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card card-custom p-4 h-100">
+            <div class="text-success mb-3"><i class="fa-solid fa-school fa-2x"></i></div>
+            <h4>Program Reguler</h4>
+            <p class="text-muted small">Sesi Pagi & Siang. Jurusan: TKJ, MP, AKL, DKV, TKR, TBSM.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card card-custom p-4 h-100">
+            <div class="text-warning mb-3"><i class="fa-solid fa-map-location-dot fa-2x"></i></div>
+            <h4>Lokasi Strategis</h4>
+            <p class="text-muted small">Jl. Raya Rajeg, Kabupaten Tangerang, Banten.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD GURU VIEW -->
+  <div id="view-dashboard-guru" class="view-pane">
+    <div class="container my-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h3 class="fw-bold mb-0">Dashboard Guru</h3>
+          <p class="text-muted small mb-0" id="guruWelcomeText">Selamat datang, Guru</p>
+        </div>
+        <button class="btn btn-outline-danger btn-sm" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
+
+      <div id="guruTabContent">
+        <div class="guru-tab-pane active" id="g-tab-home">
+          <div class="row g-3 mb-4">
+            <div class="col-md-3"><div class="card card-custom p-3 bg-primary text-white"><h6>Total Siswa</h6><h3 id="statTotalSiswa">0</h3></div></div>
+            <div class="col-md-3"><div class="card card-custom p-3 bg-success text-white"><h6>Total Kelas</h6><h3>18</h3></div></div>
+            <div class="col-md-3"><div class="card card-custom p-3 bg-warning text-dark"><h6>Tugas Aktif</h6><h3 id="statTugasAktif">0</h3></div></div>
+            <div class="col-md-3"><div class="card card-custom p-3 bg-info text-white"><h6>Status Cloud</h6><h3>Online</h3></div></div>
+          </div>
+        </div>
+        <div class="guru-tab-pane d-none" id="g-tab-kelas">
+          <h4>Daftar Kelas & Siswa</h4>
+          <div class="card card-custom p-3 mt-3"><div id="listKelasContainer">Memuat data spreadsheet...</div></div>
+        </div>
+        <div class="guru-tab-pane d-none" id="g-tab-absensi">
+          <h4>Rekap Absensi Siswa</h4>
+          <div class="card card-custom p-3 mt-3"><div id="tableAbsenGuru">Belum ada data absensi.</div></div>
+        </div>
+        <div class="guru-tab-pane d-none" id="g-tab-tugas">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4>Manajemen Tugas & Nilai</h4>
+            <button class="btn btn-primary btn-sm" onclick="openModalTambahTugas()"><i class="fa-solid fa-plus"></i> Terbitkan Tugas</button>
+          </div>
+          <div class="card card-custom p-3"><div id="listTugasGuru">Memuat tugas...</div></div>
+        </div>
+        <div class="guru-tab-pane d-none" id="g-tab-nilai">
+          <h4>Rekapitulasi Nilai Tugas</h4>
+          <div class="card card-custom p-3 mt-3"><div id="listNilaiGuru">Pilih tugas untuk memberi nilai.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="bottom-nav navbar navbar-expand">
+      <div class="container justify-content-around">
+        <a class="nav-link active" href="#" onclick="switchGuruTab('home', this)"><i class="fa-solid fa-house"></i>Home</a>
+        <a class="nav-link" href="#" onclick="switchGuruTab('kelas', this)"><i class="fa-solid fa-users"></i>Kelas</a>
+        <a class="nav-link" href="#" onclick="switchGuruTab('absensi', this)"><i class="fa-solid fa-calendar-check"></i>Absen</a>
+        <a class="nav-link" href="#" onclick="switchGuruTab('tugas', this)"><i class="fa-solid fa-book"></i>Tugas</a>
+        <a class="nav-link" href="#" onclick="switchGuruTab('nilai', this)"><i class="fa-solid fa-star"></i>Nilai</a>
+      </div>
+    </nav>
+  </div>
+
+  <!-- DASHBOARD SISWA VIEW -->
+  <div id="view-dashboard-siswa" class="view-pane">
+    <div class="container my-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h3 class="fw-bold mb-0">Dashboard Siswa</h3>
+          <p class="text-muted small mb-0" id="siswaWelcomeText">Selamat datang, Siswa</p>
+        </div>
+        <button class="btn btn-outline-danger btn-sm" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
+
+      <div id="siswaTabContent">
+        <div class="siswa-tab-pane active" id="s-tab-home">
+          <div class="row g-3 mb-4">
+            <div class="col-md-4"><div class="card card-custom p-3 bg-primary text-white"><h6>Status Akun</h6><h3>Aktif</h3></div></div>
+            <div class="col-md-4"><div class="card card-custom p-3 bg-warning text-dark"><h6>Tugas Pending</h6><h3 id="siswaPendingTugas">0</h3></div></div>
+            <div class="col-md-4"><div class="card card-custom p-3 bg-success text-white"><h6>Koneksi Database</h6><h3>Google Sheets</h3></div></div>
+          </div>
+        </div>
+        <div class="siswa-tab-pane d-none" id="s-tab-profil">
+          <h4>Identitas Siswa</h4>
+          <div class="card card-custom p-4 mt-3" id="siswaProfilCard">Memuat profil...</div>
+        </div>
+        <div class="siswa-tab-pane d-none" id="s-tab-absen">
+          <h4>Form Presensi Harian</h4>
+          <div class="card card-custom p-4 mt-3">
+            <form id="formAbsenSiswa" onsubmit="submitAbsen(event)">
+              <div class="mb-3">
+                <label class="form-label">Pilih Guru Pengajar</label>
+                <select class="form-select" id="absenGuruSelect" required></select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Mata Pelajaran</label>
+                <input type="text" class="form-control" id="absenMapel" placeholder="Contoh: Pemrograman Web" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Status Kehadiran</label>
+                <select class="form-select" id="absenStatus" required>
+                  <option value="Hadir">Hadir</option>
+                  <option value="Izin">Izin</option>
+                  <option value="Sakit">Sakit</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary">Kirim Absensi</button>
+            </form>
+          </div>
+        </div>
+        <div class="siswa-tab-pane d-none" id="s-tab-tugas">
+          <h4>Daftar Tugas Aktif</h4>
+          <div class="card card-custom p-3 mt-3" id="siswaListTugas">Memuat tugas...</div>
+        </div>
+        <div class="siswa-tab-pane d-none" id="s-tab-nilai">
+          <h4>Laporan Nilai Akademik</h4>
+          <div class="card card-custom p-3 mt-3" id="siswaListNilai">Memuat nilai...</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="bottom-nav navbar navbar-expand">
+      <div class="container justify-content-around">
+        <a class="nav-link active" href="#" onclick="switchSiswaTab('home', this)"><i class="fa-solid fa-house"></i>Home</a>
+        <a class="nav-link" href="#" onclick="switchSiswaTab('profil', this)"><i class="fa-solid fa-user"></i>Profil</a>
+        <a class="nav-link" href="#" onclick="switchSiswaTab('absen', this)"><i class="fa-solid fa-clipboard-user"></i>Absen</a>
+        <a class="nav-link" href="#" onclick="switchSiswaTab('tugas', this)"><i class="fa-solid fa-book"></i>Tugas</a>
+        <a class="nav-link" href="#" onclick="switchSiswaTab('nilai', this)"><i class="fa-solid fa-award"></i>Nilai</a>
+      </div>
+    </nav>
+  </div>
+
+  <!-- MODAL AUTENTIKASI -->
+  <div class="modal fade" id="authModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 card-custom">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold" id="authModalTitle">Portal Login</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <ul class="nav nav-pills nav-fill mb-3" id="authTab">
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#loginPane">Login</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#registerPane">Daftar Akun</a></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="loginPane">
+              <form id="formLogin" onsubmit="handleLogin(event)">
+                <div class="mb-3">
+                  <label class="form-label" id="loginIdLabel">Nomor WhatsApp / NISN</label>
+                  <input type="text" class="form-control" id="loginIdInput" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Password</label>
+                  <input type="password" class="form-control" id="loginPasswordInput" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Masuk Dashboard</button>
+              </form>
+            </div>
+            <div class="tab-pane fade" id="registerPane">
+              <form id="formRegister" onsubmit="handleRegister(event)">
+                <div id="dynamicRegisterFields"></div>
+                <div class="mb-3">
+                  <label class="form-label">Password</label>
+                  <input type="password" class="form-control" id="regPassword" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" id="regKodeLabel">Kode Unik Pendaftaran</label>
+                  <input type="text" class="form-control" id="regKodeUnik" required placeholder="Masukkan Kode Unik">
+                </div>
+                <button type="submit" class="btn btn-success w-100">Daftar Sekarang</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL BUAT TUGAS -->
+  <div class="modal fade" id="modalTugas" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content card-custom border-0">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Terbitkan Tugas Baru</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form onsubmit="submitTugas(event)">
+            <div class="mb-3"><label class="form-label">Judul Tugas</label><input type="text" class="form-control" id="tugasJudul" required></div>
+            <div class="mb-3"><label class="form-label">Deskripsi</label><textarea class="form-control" id="tugasDeskripsi" rows="3" required></textarea></div>
+            <div class="mb-3"><label class="form-label">Kelas Target</label><input type="text" class="form-control" id="tugasKelas" placeholder="Contoh: XI TKJ 1" required></div>
+            <div class="row">
+              <div class="col-md-6 mb-3"><label class="form-label">Deadline Tanggal</label><input type="date" class="form-control" id="tugasTgl" required></div>
+              <div class="col-md-6 mb-3"><label class="form-label">Deadline Jam</label><input type="time" class="form-control" id="tugasJam" required></div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Publikasikan Tugas</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // --- LINK APPS SCRIPT ANDA ---
+    let appMode = 'web'; 
+    let APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1T7EhRL3CDinn0Db2LXj3xTjfce0SI8mOwONEYWuQzEF_T2TSgDoxnq_d5q93URpjyA/exec";
+    
+    let currentPortal = 'siswa';
+    let authToken = localStorage.getItem('avicena_token') || null;
+    let currentUser = JSON.parse(localStorage.getItem('avicena_user') || 'null');
+    let cachedData = { guru: [], siswa: [], tugas: [], pengumpulan: [], absensi: [] };
+
+    function setAppMode(mode) {
+      appMode = mode;
+      document.getElementById('modeLabel').innerText = mode.toUpperCase();
+      Swal.fire({ icon: 'info', title: `Mode Diubah ke ${mode.toUpperCase()}`, timer: 1500, showConfirmButton: false });
+    }
+
+    // --- API DISPATCHER KE GOOGLE APPS SCRIPT ---
+    async function callBackend(action, payload = {}) {
+      if (appMode === 'web') {
+        try {
+          let response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: action, payload: payload, token: authToken })
+          });
+          let result = await response.json();
+          return result;
+        } catch (error) {
+          console.error("Koneksi gagal:", error);
+          return { status: 'error', message: 'Gagal terhubung ke server cloud Apps Script.' };
+        }
+      } else {
+        // Fallback Local Mode
+        return { status: 'success', message: 'Local mode active' };
+      }
+    }
+
+    function switchView(viewName) {
+      document.querySelectorAll('.view-pane').forEach(el => el.classList.remove('active'));
+      document.getElementById('view-' + viewName).classList.add('active');
+      window.scrollTo(0, 0);
+    }
+
+    function switchGuruTab(tabName, el) {
+      document.querySelectorAll('.guru-tab-pane').forEach(e => e.classList.add('d-none'));
+      document.getElementById('g-tab-' + tabName).classList.remove('d-none');
+      if(el) {
+        document.querySelectorAll('#view-dashboard-guru .bottom-nav .nav-link').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
+      }
+    }
+
+    function switchSiswaTab(tabName, el) {
+      document.querySelectorAll('.siswa-tab-pane').forEach(e => e.classList.add('d-none'));
+      document.getElementById('s-tab-' + tabName).classList.remove('d-none');
+      if(el) {
+        document.querySelectorAll('#view-dashboard-siswa .bottom-nav .nav-link').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
+      }
+    }
+
+    function openAuthModal(portal) {
+      currentPortal = portal;
+      document.getElementById('authModalTitle').innerText = portal === 'guru' ? 'Portal Guru SMK Avicena' : 'Portal Siswa SMK Avicena';
+      let regFields = document.getElementById('dynamicRegisterFields');
+      if (portal === 'guru') {
+        document.getElementById('loginIdLabel').innerText = "Nomor WhatsApp";
+        document.getElementById('regKodeLabel').innerText = "Kode Unik Guru (GURUAVC2026)";
+        regFields.innerHTML = `
+          <div class="mb-3"><label class="form-label">Nama Lengkap & Gelar</label><input type="text" class="form-control" id="regNama" required></div>
+          <div class="mb-3"><label class="form-label">Nomor WhatsApp</label><input type="text" class="form-control" id="regHp" required></div>
+          <div class="mb-3"><label class="form-label">Mapel Umum</label><input type="text" class="form-control" id="regMapelUmum"></div>
+          <div class="mb-3"><label class="form-label">Mapel Kejuruan</label><input type="text" class="form-control" id="regMapelKejuruan"></div>
+        `;
+      } else {
+        document.getElementById('loginIdLabel').innerText = "NISN (10 Digit)";
+        document.getElementById('regKodeLabel').innerText = "Kode Unik Siswa (SISWAAVC2026)";
+        regFields.innerHTML = `
+          <div class="mb-3"><label class="form-label">Nama Lengkap</label><input type="text" class="form-control" id="regNama" required></div>
+          <div class="mb-3"><label class="form-label">NISN</label><input type="text" class="form-control" id="regNisn" maxlength="10" required></div>
+          <div class="mb-3"><label class="form-label">Nomor WhatsApp</label><input type="text" class="form-control" id="regHp" required></div>
+          <div class="mb-3"><label class="form-label">Kelas</label><input type="text" class="form-control" id="regKelas" placeholder="XI TKJ 1" required></div>
+          <div class="mb-3"><label class="form-label">Jurusan</label><input type="text" class="form-control" id="regJurusan" placeholder="TKJ" required></div>
+          <div class="mb-3"><label class="form-label">Nama Ayah</label><input type="text" class="form-control" id="regAyah"></div>
+          <div class="mb-3"><label class="form-label">Nama Ibu</label><input type="text" class="form-control" id="regIbu" required></div>
+        `;
+      }
+      new bootstrap.Modal(document.getElementById('authModal')).show();
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      let inputVal = document.getElementById('loginIdInput').value;
+      let password = document.getElementById('loginPasswordInput').value;
+      let action = currentPortal === 'guru' ? 'login_guru' : 'login_siswa';
+      let payload = currentPortal === 'guru' ? { hp: inputVal, password } : { nisn: inputVal, password };
+
+      Swal.fire({ title: 'Memproses login...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      let res = await callBackend(action, payload);
+      Swal.close();
+
+      if (res.status === 'success') {
+        authToken = res.token;
+        currentUser = res.user;
+        localStorage.setItem('avicena_token', authToken);
+        localStorage.setItem('avicena_user', JSON.stringify(currentUser));
+        bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
+        loadDashboard();
+      } else {
+        Swal.fire('Gagal Login', res.message, 'error');
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      let action = currentPortal === 'guru' ? 'register_guru' : 'register_siswa';
+      let payload = {
+        nama: document.getElementById('regNama').value,
+        hp: document.getElementById('regHp').value,
+        password: document.getElementById('regPassword').value,
+        kodeUnik: document.getElementById('regKodeUnik').value
+      };
+      if (currentPortal === 'guru') {
+        payload.mapelUmum = document.getElementById('regMapelUmum').value;
+        payload.mapelKejuruan = document.getElementById('regMapelKejuruan').value;
+      } else {
+        payload.nisn = document.getElementById('regNisn').value;
+        payload.kelas = document.getElementById('regKelas').value;
+        payload.jurusan = document.getElementById('regJurusan').value;
+        payload.namaAyah = document.getElementById('regAyah').value;
+        payload.namaIbu = document.getElementById('regIbu').value;
+      }
+
+      Swal.fire({ title: 'Mendaftarkan akun...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      let res = await callBackend(action, payload);
+      Swal.close();
+
+      if (res.status === 'success') {
+        Swal.fire('Berhasil', res.message, 'success');
+        document.getElementById('formRegister').reset();
+      } else {
+        Swal.fire('Gagal', res.message, 'error');
+      }
+    }
+
+    async function doLogout() {
+      await callBackend('logout');
+      localStorage.removeItem('avicena_token');
+      localStorage.removeItem('avicena_user');
+      authToken = null;
+      currentUser = null;
+      switchView('landing');
+      Swal.fire('Berhasil Logout', '', 'info');
+    }
+
+    async function loadDashboard() {
+      Swal.fire({ title: 'Memuat data spreadsheet...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      let res = await callBackend('sync');
+      Swal.close();
+
+      if (res.status === 'success') {
+        cachedData = res.data;
+        if (currentUser.role === 'guru') {
+          document.getElementById('guruWelcomeText').innerText = `Selamat datang, ${currentUser.nama}`;
+          document.getElementById('statTotalSiswa').innerText = cachedData.siswa.length;
+          document.getElementById('statTugasAktif').innerText = cachedData.tugas.length;
+          renderGuruTugas();
+          renderGuruKelas();
+          renderGuruAbsen();
+          renderGuruNilaiList();
+          switchView('dashboard-guru');
+        } else {
+          document.getElementById('siswaWelcomeText').innerText = `Selamat datang, ${currentUser.nama} (${currentUser.kelas})`;
+          document.getElementById('siswaPendingTugas').innerText = cachedData.tugas.length;
+          renderSiswaProfil();
+          renderSiswaTugas();
+          renderSiswaAbsenGuruSelect();
+          renderSiswaNilai();
+          switchView('dashboard-siswa');
+        }
+      } else {
+        Swal.fire('Sesi Habis', 'Silakan login kembali.', 'warning');
+        doLogout();
+      }
+    }
+
+    function renderGuruKelas() {
+      let html = `<ul class="list-group">`;
+      if(cachedData.siswa.length === 0) html += `<li class="list-group-item text-muted">Belum ada data siswa terdaftar.</li>`;
+      cachedData.siswa.forEach(s => {
+        html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+          <div><strong>${s.nama}</strong> <span class="text-muted small">(${s.nisn})</span></div>
+          <span class="badge bg-primary">${s.kelas}</span>
+        </li>`;
+      });
+      html += `</ul>`;
+      document.getElementById('listKelasContainer').innerHTML = html;
+    }
+
+    function renderGuruAbsen() {
+      let html = `<table class="table table-striped"><thead><tr><th>Nama</th><th>Kelas</th><th>Guru</th><th>Mapel</th><th>Status</th><th>Tanggal</th></tr></thead><tbody>`;
+      cachedData.absensi.forEach(a => {
+        html += `<tr><td>${a.namaSiswa}</td><td>${a.kelas}</td><td>${a.guru}</td><td>${a.mapel}</td><td><span class="badge bg-success">${a.status}</span></td><td>${new Date(a.waktu).toLocaleDateString()}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+      document.getElementById('tableAbsenGuru').innerHTML = html || '<p class="text-muted">Belum ada absensi masuk.</p>';
+    }
+
+    function renderGuruTugas() {
+      let html = `<ul class="list-group">`;
+      cachedData.tugas.forEach(t => {
+        html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+          <div><strong>${t.judul}</strong><br><small class="text-muted">Target: ${t.kelasTarget} | Deadline: ${t.deadlineTgl} ${t.deadlineJam}</small></div>
+          <span class="badge bg-secondary">${t.pembuatGuru}</span>
+        </li>`;
+      });
+      html += `</ul>`;
+      document.getElementById('listTugasGuru').innerHTML = html || '<p class="text-muted">Belum ada tugas.</p>';
+    }
+
+    function renderGuruNilaiList() {
+      let html = `<div class="list-group">`;
+      cachedData.tugas.forEach(t => {
+        html += `<div class="list-group-item">
+          <h6>${t.judul} (${t.kelasTarget})</h6>
+          <table class="table table-sm mt-2">
+            <thead><tr><th>Siswa</th><th>Catatan / Jawaban</th><th>Nilai</th><th>Aksi</th></tr></thead>
+            <tbody>`;
+        let subs = cachedData.pengumpulan.filter(p => p.tugasId === t.id);
+        if (subs.length === 0) html += `<tr><td colspan="4" class="text-muted text-center">Belum ada pengumpulan tugas.</td></tr>`;
+        subs.forEach(sub => {
+          html += `<tr>
+            <td>${sub.namaSiswa} (${sub.nisn})</td>
+            <td>${sub.catatanAtauFile}</td>
+            <td><input type="number" class="form-control form-control-sm" id="val_${t.id}_${sub.nisn}" value="${sub.nilai || ''}" style="width: 80px"></td>
+            <td><button class="btn btn-sm btn-success" onclick="simpanNilai('${t.id}', '${sub.nisn}')">Simpan</button></td>
+          </tr>`;
+        });
+        html += `</tbody></table></div>`;
+      });
+      html += `</div>`;
+      document.getElementById('listNilaiGuru').innerHTML = html;
+    }
+
+    function openModalTambahTugas() {
+      new bootstrap.Modal(document.getElementById('modalTugas')).show();
+    }
+
+    async function submitTugas(e) {
+      e.preventDefault();
+      let payload = {
+        judul: document.getElementById('tugasJudul').value,
+        deskripsi: document.getElementById('tugasDeskripsi').value,
+        kelasTarget: document.getElementById('tugasKelas').value,
+        deadlineTgl: document.getElementById('tugasTgl').value,
+        deadlineJam: document.getElementById('tugasJam').value
+      };
+      let res = await callBackend('save_tugas', payload);
+      if (res.status === 'success') {
+        Swal.fire('Sukses', res.message, 'success');
+        bootstrap.Modal.getInstance(document.getElementById('modalTugas')).hide();
+        loadDashboard();
+      } else {
+        Swal.fire('Gagal', res.message, 'error');
+      }
+    }
+
+    async function simpanNilai(tugasId, nisn) {
+      let nilai = document.getElementById(`val_${tugasId}_${nisn}`).value;
+      let res = await callBackend('save_nilai', { tugasId, nisn, nilai });
+      if (res.status === 'success') {
+        Swal.fire('Sukses', res.message, 'success');
+        loadDashboard();
+      } else {
+        Swal.fire('Gagal', res.message, 'error');
+      }
+    }
+
+    function renderSiswaProfil() {
+      document.getElementById('siswaProfilCard').innerHTML = `
+        <p><strong>Nama:</strong> ${currentUser.nama}</p>
+        <p><strong>NISN:</strong> ${currentUser.nisn}</p>
+        <p><strong>Kelas:</strong> ${currentUser.kelas}</p>
+        <p><strong>Jurusan:</strong> ${currentUser.jurusan}</p>
+      `;
+    }
+
+    function renderSiswaTugas() {
+      let html = `<ul class="list-group">`;
+      let myTasks = cachedData.tugas.filter(t => t.kelasTarget.toLowerCase() === currentUser.kelas.toLowerCase() || t.kelasTarget.toLowerCase() === 'semua');
+      if(myTasks.length === 0) html += `<li class="list-group-item text-muted">Tidak ada tugas aktif.</li>`;
+      myTasks.forEach(t => {
+        html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+          <div><strong>${t.judul}</strong><br><small class="text-muted">${t.deskripsi}</small><br><span class="badge bg-secondary">Deadline: ${t.deadlineTgl}</span></div>
+          <button class="btn btn-sm btn-primary" onclick="openKirimTugas('${t.id}')">Kirim Jawaban</button>
+        </li>`;
+      });
+      html += `</ul>`;
+      document.getElementById('siswaListTugas').innerHTML = html;
+    }
+
+    async function openKirimTugas(tugasId) {
+      const { value: catatan } = await Swal.fire({
+        title: 'Kirim Tugas',
+        input: 'textarea',
+        inputLabel: 'Catatan / Link Google Drive Jawaban',
+        inputPlaceholder: 'Tulis jawaban atau tautan file di sini...',
+        showCancelButton: true
+      });
+      if (catatan) {
+        let res = await callBackend('save_pengumpulan', { tugasId, catatanAtauFile: catatan });
+        if (res.status === 'success') {
+          Swal.fire('Berhasil', res.message, 'success');
+          loadDashboard();
+        } else {
+          Swal.fire('Gagal', res.message, 'error');
+        }
+      }
+    }
+
+    function renderSiswaAbsenGuruSelect() {
+      let select = document.getElementById('absenGuruSelect');
+      select.innerHTML = '';
+      cachedData.guru.forEach(g => {
+        select.innerHTML += `<option value="${g.nama}">${g.nama} (${g.mapelUmum || g.mapelKejuruan})</option>`;
+      });
+    }
+
+    async function submitAbsen(e) {
+      e.preventDefault();
+      let payload = {
+        guru: document.getElementById('absenGuruSelect').value,
+        mapel: document.getElementById('absenMapel').value,
+        status: document.getElementById('absenStatus').value,
+        tanggal: new Date().toISOString().split('T')[0]
+      };
+      let res = await callBackend('save_absen', payload);
+      if (res.status === 'success') {
+        Swal.fire('Sukses', res.message, 'success');
+        document.getElementById('formAbsenSiswa').reset();
+      } else {
+        Swal.fire('Gagal', res.message, 'error');
+      }
+    }
+
+    function renderSiswaNilai() {
+      let html = `<table class="table table-bordered"><thead><tr><th>Judul Tugas</th><th>Catatan Anda</th><th>Nilai</th></tr></thead><tbody>`;
+      let mySubs = cachedData.pengumpulan.filter(p => p.nisn === currentUser.nisn);
+      if(mySubs.length === 0) html += `<tr><td colspan="3" class="text-muted text-center">Belum ada tugas dinilai.</td></tr>`;
+      mySubs.forEach(sub => {
+        let t = cachedData.tugas.get ? cachedData.tugas.get(sub.tugasId) : cachedData.tugas.find(x => x.id === sub.tugasId);
+        html += `<tr><td>${t ? t.judul : sub.tugasId}</td><td>${sub.catatanAtauFile}</td><td><span class="badge bg-success">${sub.nilai || 'Belum dinilai'}</span></td></tr>`;
+      });
+      html += `</tbody></table>`;
+      document.getElementById('siswaListNilai').innerHTML = html;
+    }
+
+    // Auto-load session
+    if (authToken && currentUser) {
+      loadDashboard();
+    }
+  </script>
+</body>
+</html>
