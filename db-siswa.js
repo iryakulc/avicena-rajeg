@@ -16,39 +16,54 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
 
-  try {
-    currentSiswa = JSON.parse(sessionData);
-    populateSiswaData(currentSiswa);
+  currentSiswa = JSON.parse(sessionData);
+  populateSiswaData(currentSiswa);
 
-    Swal.fire({ title: 'Sinkronisasi data...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  Swal.fire({ title: 'Sinkronisasi data...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-    google.script.run
-      .withSuccessHandler(function(bundle) {
-        localStorage.setItem('database_siswa', JSON.stringify(bundle.siswa || []));
-        localStorage.setItem('database_guru', JSON.stringify(bundle.guru || []));
-        localStorage.setItem('database_tugas', JSON.stringify(bundle.tugas || []));
-        localStorage.setItem('database_absensi', JSON.stringify(bundle.absensi || []));
-        localStorage.setItem('database_pengumpulan_tugas', JSON.stringify(bundle.pengumpulan || []));
+  let sudahSelesai = false;
+  const timeout = setTimeout(function() {
+    if (!sudahSelesai) {
+      console.warn('Request timeout 15s, pakai data lokal');
+      loadDariLocal();
+      Swal.close();
+    }
+  }, 15000);
 
-        initAbsenPage();
-        renderTugasSiswa();
-        renderNilaiSiswa();
-        updateStatOverview();
-        Swal.close();
-      })
-      .withFailureHandler(function(err) {
-        console.error('Sync error:', err);
-        initAbsenPage();
-        renderTugasSiswa();
-        renderNilaiSiswa();
-        updateStatOverview();
-        Swal.close();
-      })
-      .getAllDataForSiswa();
-  } catch (e) {
-    console.error('Error parsing data siswa:', e);
-  }
+  // ✅ PANGGIL getDataForSiswa DENGAN NISN
+  google.script.run
+    .withSuccessHandler(function(bundle) {
+      sudahSelesai = true;
+      clearTimeout(timeout);
+
+      localStorage.setItem('database_siswa', JSON.stringify(bundle.siswa || []));
+      localStorage.setItem('database_guru', JSON.stringify(bundle.guru || []));
+      localStorage.setItem('database_tugas', JSON.stringify(bundle.tugas || []));
+      localStorage.setItem('database_absensi', JSON.stringify(bundle.absensi || []));
+      localStorage.setItem('database_pengumpulan_tugas', JSON.stringify(bundle.pengumpulan || []));
+
+      initAbsenPage();
+      renderTugasSiswa();
+      renderNilaiSiswa();
+      updateStatOverview();
+      Swal.close();
+    })
+    .withFailureHandler(function(err) {
+      sudahSelesai = true;
+      clearTimeout(timeout);
+      console.error('Sync error:', err);
+      loadDariLocal();
+      Swal.close();
+    })
+    .getDataForSiswa(currentSiswa.nisn);
 });
+
+function loadDariLocal() {
+  initAbsenPage();
+  renderTugasSiswa();
+  renderNilaiSiswa();
+  updateStatOverview();
+}
 
 function populateSiswaData(siswa) {
   if (!siswa) return;
