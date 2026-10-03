@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dashboard Siswa — SMK Avicena Rajeg</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="db-siswa.css">
+</head>
+<body>
+
+<header>
+  <div class="nav-wrap">
+    <div class="brand">
+      <div class="brand-mark">SA</div>
+      <div class="brand-text">
+        <b>SMK Avicena Rajeg</b>
+        <span>Portal Siswa</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <a href="index.html" class="btn-top-nav">
+        <i class="fa-solid fa-house"></i> <span>Home Utama</span>
+      </a>
+      <button onclick="logoutSiswa()" class="btn-top-nav btn-top-logout">
+        <i class="fa-solid fa-right-from-bracket"></i> <span>Keluar</span>
+      </button>
+      <button onclick="hapusAkunSiswa()" class="btn-top-nav btn-top-danger" title="Hapus Akun Permanen">
+        <i class="fa-solid fa-trash-can"></i> <span>Hapus Akun</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section id="home" class="section active">
+    <div class="page-head">
+      <h1>Halo, <span class="val-nama-siswa">Siswa</span> 👋</h1>
+      <p>Data aktivitas belajar kamu di SMK Avicena Rajeg secara real-time.</p>
+    </div>
+
+    <div class="stat-grid">
+      <div class="glass-card stat-card c-teal">
+        <div class="icon"><i class="fa-solid fa-user-check"></i></div>
+        <div class="num" id="statPresensiBulan">0%</div>
+        <div class="lbl">Presensi Bulan Ini</div>
+      </div>
+      <div class="glass-card stat-card c-pink">
+        <div class="icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="num" id="statTugasPending">0</div>
+        <div class="lbl">Tugas Pending</div>
+      </div>
+      <div class="glass-card stat-card c-gold">
+        <div class="icon"><i class="fa-solid fa-star"></i></div>
+        <div class="num" id="statRataNilai">0.0</div>
+        <div class="lbl">Rata-Rata Nilai</div>
+      </div>
+      <div class="glass-card stat-card c-blue">
+        <div class="icon"><i class="fa-solid fa-book-open"></i></div>
+        <div class="num" id="statGuruAktif">0</div>
+        <div class="lbl">Guru Terdaftar</div>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <h3 style="margin-top:0;font-size:16px;"><i class="fa-solid fa-calendar-day me-2 text-teal"></i>Status Belajar & Informasi</h3>
+      <div class="empty-state" style="padding: 16px 0;">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <b>Selamat Datang di Portal Siswa</b>
+        <p style="font-size:12px;margin-top:4px;">Silakan gunakan menu navigasi di bawah untuk mengisi absensi, mengerjakan tugas, dan melihat laporan nilai.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="profil" class="section">
+    <div class="page-head">
+      <h1>Profil Siswa</h1>
+      <p>Informasi data diri terdaftar di sistem sekolah.</p>
+    </div>
+
+    <div class="profil-wrap">
+      <div class="glass-card avatar-card">
+        <div class="avatar-circle" id="avatarInisial">SW</div>
+        <h3 class="val-nama-siswa">Nama Siswa</h3>
+        <p>NISN <span id="valNisn">-</span></p>
+        <div class="badge-jalur" id="valJalur">Program Keahlian</div>
+      </div>
+
+      <div class="glass-card">
+        <h3 style="margin-top:0;font-size:15px;margin-bottom:14px;"><i class="fa-solid fa-address-card me-2 text-teal"></i>Detail Identitas</h3>
+        <div class="data-grid">
+          <div class="data-item"><label>Nama Lengkap</label><div class="val-nama-siswa">-</div></div>
+          <div class="data-item"><label>NISN</label><div id="valNisnDetail">-</div></div>
+          <div class="data-item"><label>Kelas &amp; Rombel</label><div id="valKelas">-</div></div>
+          <div class="data-item"><label>Program Keahlian</label><div id="valJalurDetail">-</div></div>
+          <div class="ortu-grid">
+            <div class="data-item"><label>Nama Ayah</label><div id="valAyah">-</div></div>
+            <div class="data-item"><label>Nama Ibu</label><div id="valIbu">-</div></div>
+          </div>
+          <div class="data-item"><label>No. WhatsApp Siswa</label><div id="valHp">-</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="absen" class="section">
+    <div class="page-head">
+      <h1>Absen Mata Pelajaran</h1>
+      <p>Pilih mata pelajaran dan guru pengajar untuk mengirimkan presensi harian.</p>
+    </div>
+
+    <div class="glass-card">
+      <h3 style="margin-top:0;font-size:15px;margin-bottom:14px;"><i class="fa-solid fa-clipboard-user text-teal me-2"></i>Form Presensi Siswa</h3>
+
+      <div class="data-grid" style="gap:14px;">
+        <div>
+          <label style="font-size:12px;font-weight:700;color:var(--navy-deep);display:block;margin-bottom:6px;">
+            <i class="fa-solid fa-chalkboard-user me-1 text-teal"></i> Pilih Mata Pelajaran &amp; Guru Pengajar:
+          </label>
+          <select id="selectGuruAbsen" class="form-control-custom" style="padding:10px 12px;border-radius:10px;width:100%;background:#f8fafc;border:1px solid #cbd5e1;font-weight:600;">
+            <option value="">-- Pilih Guru / Mapel --</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:12px;font-weight:700;color:var(--navy-deep);display:block;margin-bottom:6px;">
+            <i class="fa-solid fa-user-check me-1 text-teal"></i> Status Kehadiran:
+          </label>
+          <div style="display:flex;gap:10px;">
+            <label style="flex:1;background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:10px;cursor:pointer;text-align:center;font-weight:700;font-size:13px;">
+              <input type="radio" name="statusAbsen" value="Hadir" checked> Hadir
+            </label>
+            <label style="flex:1;background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:10px;cursor:pointer;text-align:center;font-weight:700;font-size:13px;">
+              <input type="radio" name="statusAbsen" value="Izin"> Izin
+            </label>
+            <label style="flex:1;background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:10px;cursor:pointer;text-align:center;font-weight:700;font-size:13px;">
+              <input type="radio" name="statusAbsen" value="Sakit"> Sakit
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:12px;font-weight:700;color:var(--navy-deep);display:block;margin-bottom:6px;">
+            <i class="fa-solid fa-calendar-day me-1 text-teal"></i> Tanggal Presensi:
+          </label>
+          <input type="date" id="tglAbsenSiswa" class="form-control-custom" style="padding:10px 12px;border-radius:10px;width:100%;background:#f8fafc;border:1px solid #cbd5e1;">
+        </div>
+
+        <button onclick="kirimAbsensiSiswa()" class="btn-top-nav" style="background:var(--emerald);color:#fff;border:none;justify-content:center;padding:12px;font-size:14px;border-radius:10px;margin-top:6px;">
+          <i class="fa-solid fa-paper-plane me-1"></i> Kirim Presensi
+        </button>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <h3 style="margin-top:0;font-size:15px;margin-bottom:12px;"><i class="fa-solid fa-clock-rotate-left me-2 text-teal"></i>Riwayat Presensi Kamu</h3>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Tanggal</th><th>Mata Pelajaran / Guru</th><th>Status</th></tr>
+          </thead>
+          <tbody id="tbodyRiwayatAbsen">
+            <tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:20px;">Belum ada riwayat presensi.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="tugas" class="section">
+    <div class="page-head">
+      <h1>Tugas Sekolah</h1>
+      <p>Daftar tugas aktif dari guru untuk kelas kamu (<b id="lblKelasTugasSiswa">-</b>).</p>
+    </div>
+
+    <div id="containerDaftarTugasSiswa">
+      <div class="glass-card">
+        <div class="empty-state">
+          <i class="fa-solid fa-box-archive"></i>
+          <b>Belum Ada Tugas Diberikan</b>
+          <p style="font-size:12px;margin-top:4px;">Semua tugas dari guru akan muncul di halaman ini secara otomatis.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="nilai" class="section">
+    <div class="page-head">
+      <h1>Laporan Nilai Akademik</h1>
+      <p>Rekapitulasi capaian nilai tugas per mata pelajaran dan guru pengajar.</p>
+    </div>
+
+    <div class="glass-card table-scroll">
+      <table>
+        <thead>
+          <tr><th>Mata Pelajaran &amp; Tugas</th><th>Guru Pengajar</th><th>Status Koreksi</th><th>Nilai (0-100)</th></tr>
+        </thead>
+        <tbody id="tbodyNilaiSiswa">
+          <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px;">Belum ada data nilai tercatat.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<nav class="bottom-nav">
+  <button class="bottom-tab active" onclick="switchTab('home', this)"><i class="fa-solid fa-house"></i><span>Home</span></button>
+  <button class="bottom-tab" onclick="switchTab('profil', this)"><i class="fa-solid fa-user"></i><span>Profil</span></button>
+  <button class="bottom-tab" onclick="switchTab('absen', this)"><i class="fa-solid fa-clipboard-user"></i><span>Absen</span></button>
+  <button class="bottom-tab" onclick="switchTab('tugas', this)"><i class="fa-solid fa-book-open"></i><span>Tugas</span></button>
+  <button class="bottom-tab" onclick="switchTab('nilai', this)"><i class="fa-solid fa-chart-simple"></i><span>Nilai</span></button>
+</nav>
+
+<script src="db-siswa.js"></script>
+</body>
+</html>
