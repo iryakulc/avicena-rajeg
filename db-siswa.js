@@ -1,4 +1,4 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbwINKMgUmWZ4T-nRqOvsoMog0uwdEbkXLmddb15meQhl4fvP-miHryRLQ22sQj5_c2b0A/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzX1pbVQKisdmesboeROBQ6O5u4WVErBoW_UwdILnvEY2G0uGeNO-UGVU9Fr5ZW88iHvA/exec';
 
 let currentSiswa = null;
 
