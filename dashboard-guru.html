@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dashboard Guru — SMK Avicena Rajeg</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="db-guru.css">
+</head>
+<body>
+
+<header>
+  <div class="nav-wrap">
+    <div class="brand">
+      <div class="brand-mark">PG</div>
+      <div class="brand-text">
+        <b>SMK Avicena Rajeg</b>
+        <span>Portal Guru &amp; Pengajar</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <a href="index.html" class="btn-top-nav">
+        <i class="fa-solid fa-house"></i> <span>Home Utama</span>
+      </a>
+      <button onclick="logoutGuru()" class="btn-top-nav btn-top-logout">
+        <i class="fa-solid fa-right-from-bracket"></i> <span>Keluar</span>
+      </button>
+      <button onclick="hapusAkunGuru()" class="btn-top-nav btn-top-danger" title="Hapus Akun Permanen">
+        <i class="fa-solid fa-trash-can"></i> <span>Hapus Akun</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section id="home" class="section active">
+    <div class="page-head">
+      <div class="page-head-title">
+        <h1>Selamat Datang, <span class="val-nama-guru">Guru</span> 👋</h1>
+        <p>Data aktivitas mengajar dan presensi kelas Anda secara real-time.</p>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="glass-card stat-card c-blue" onclick="switchTab('total-kelas')">
+        <div class="icon"><i class="fa-solid fa-users"></i></div>
+        <div class="num" id="statTotalSiswa">0</div>
+        <div class="lbl">Total Siswa</div>
+      </div>
+      <div class="glass-card stat-card c-pink" onclick="switchTab('total-kelas')">
+        <div class="icon"><i class="fa-solid fa-chalkboard"></i></div>
+        <div class="num" id="statTotalKelas">0</div>
+        <div class="lbl">Total Kelas</div>
+      </div>
+      <div class="glass-card stat-card c-gold" onclick="switchTab('tugas')">
+        <div class="icon"><i class="fa-solid fa-book-bookmark"></i></div>
+        <div class="num" id="statTugas">0</div>
+        <div class="lbl">Tugas Aktif</div>
+      </div>
+      <div class="glass-card stat-card c-teal" onclick="switchTab('absensi')">
+        <div class="icon"><i class="fa-solid fa-clipboard-user"></i></div>
+        <div class="num" id="statPresensi">0%</div>
+        <div class="lbl">Kehadiran Hari Ini</div>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h3 style="margin:0;font-size:16px;"><i class="fa-solid fa-id-card me-2 text-primary"></i>Profil Akun Pengajar</h3>
+        <button class="btn-action" style="padding:6px 12px;font-size:12px;" onclick="editProfilGuru()"><i class="fa-solid fa-pen-to-square me-1"></i> Edit Profil</button>
+      </div>
+
+      <div class="profile-card-modern">
+        <div class="profile-avatar-box">
+          <div class="profile-avatar-circle" id="avatarGuruInisial">PG</div>
+          <h3 class="val-nama-guru" style="font-size:15px;margin:0 0 4px;">Guru Pengajar</h3>
+          <span style="font-size:11px;opacity:0.8;">Pengajar Resmi AVC</span>
+        </div>
+
+        <div class="profile-info-grid">
+          <div class="info-item"><label>Nama Guru &amp; Gelar</label><div class="val-nama-guru">-</div></div>
+          <div class="info-item"><label>No. WhatsApp</label><div id="valHpGuru">-</div></div>
+          <div class="info-item"><label>Mapel Umum</label><div id="valMapelUmum">-</div></div>
+          <div class="info-item"><label>Mapel Kejuruan</label><div id="valMapelKejuruan">-</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="total-kelas" class="section">
+    <div id="viewDaftarKelas">
+      <div class="page-head">
+        <div class="page-head-title">
+          <h1>Total Kelas</h1>
+          <p>Daftar seluruh kelas aktif yang terdaftar oleh siswa.</p>
+        </div>
+        <button class="btn-back-header" onclick="navigasiKembaliKelas()"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+      </div>
+
+      <div class="kelas-grid" id="containerDaftarKelas"></div>
+    </div>
+
+    <div id="viewSiswaInKelas" style="display:none;">
+      <div class="page-head">
+        <div class="page-head-title">
+          <h1>Kelas <span id="lblNamaKelasAktif">-</span></h1>
+          <p id="lblJmlSiswaKelas">0 Siswa Terdaftar</p>
+        </div>
+        <button class="btn-back-header" onclick="navigasiKembaliKelas()"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+      </div>
+
+      <div class="glass-card table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>NISN</th>
+              <th>Nama Siswa</th>
+              <th>Program Keahlian / Jurusan</th>
+              <th style="text-align:right;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tbodySiswaKelas"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="viewDetailProfilSiswa" style="display:none;">
+      <div class="page-head">
+        <div class="page-head-title">
+          <h1>Detail Profil Siswa</h1>
+          <p>Informasi data lengkap siswa terdaftar.</p>
+        </div>
+        <button class="btn-back-header" onclick="navigasiKembaliKelas()"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+      </div>
+
+      <div class="glass-card">
+        <div class="profile-info-grid" style="grid-template-columns: repeat(2, 1fr);">
+          <div class="info-item"><label>Nama Lengkap Siswa</label><div id="detailSiswaNama">-</div></div>
+          <div class="info-item"><label>NISN</label><div id="detailSiswaNisn">-</div></div>
+          <div class="info-item"><label>Kelas &amp; Rombel</label><div id="detailSiswaKelas">-</div></div>
+          <div class="info-item"><label>Program Keahlian</label><div id="detailSiswaJurusan">-</div></div>
+          <div class="info-item"><label>Nama Ayah</label><div id="detailSiswaAyah">-</div></div>
+          <div class="info-item"><label>Nama Ibu</label><div id="detailSiswaIbu">-</div></div>
+          <div class="info-item" style="grid-column: 1 / -1;"><label>No. WhatsApp Siswa</label><div id="detailSiswaHp">-</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="absensi" class="section">
+    <div class="page-head">
+      <div class="page-head-title">
+        <h1>Kelola Absensi Siswa</h1>
+        <p>Input dan simpan presensi harian siswa berdasarkan kelas terdaftar.</p>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <div class="filter-beruntun-grid">
+        <div class="filter-box-item">
+          <label><i class="fa-solid fa-layer-group text-primary me-1"></i> Jalur / Sistem:</label>
+          <div class="custom-select-wrap">
+            <button type="button" class="custom-select-btn" onclick="toggleDropdownAbsen('dropdownJalur')">
+              <span id="lblAbsenJalur">-- Pilih Jalur --</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="custom-dropdown-menu" id="dropdownJalur">
+              <div class="custom-option" onclick="pilihJalurAbsen('Excellent')">
+                <span><i class="fa-solid fa-star text-warning me-2"></i>Excellent (+)</span>
+              </div>
+              <div class="custom-option" onclick="pilihJalurAbsen('Reguler')">
+                <span><i class="fa-solid fa-user-check text-success me-2"></i>Reguler</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-box-item">
+          <label><i class="fa-solid fa-graduation-cap text-primary me-1"></i> Tingkat Kelas:</label>
+          <div class="custom-select-wrap">
+            <button type="button" class="custom-select-btn" id="btnAbsenTingkat" onclick="toggleDropdownAbsen('dropdownTingkat')" disabled>
+              <span id="lblAbsenTingkat">-- Pilih Tingkat --</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="custom-dropdown-menu" id="dropdownTingkat">
+              <div class="custom-option" onclick="pilihTingkatAbsen('10')">Kelas 10</div>
+              <div class="custom-option" onclick="pilihTingkatAbsen('11')">Kelas 11</div>
+              <div class="custom-option" onclick="pilihTingkatAbsen('12')">Kelas 12</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-box-item">
+          <label><i class="fa-solid fa-chalkboard text-primary me-1"></i> Kelas &amp; Rombel:</label>
+          <div class="custom-select-wrap">
+            <button type="button" class="custom-select-btn" id="btnAbsenKelasFix" onclick="toggleDropdownAbsen('dropdownKelasFix')" disabled>
+              <span id="lblAbsenKelasFix">-- Pilih Kelas --</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="custom-dropdown-menu" id="dropdownKelasFix"></div>
+          </div>
+        </div>
+
+        <div class="filter-box-item">
+          <label><i class="fa-solid fa-calendar-day text-primary me-1"></i> Tanggal:</label>
+          <input type="date" class="form-control-custom" id="tglAbsensiGuru" style="margin-top:0;padding:9px 12px;">
+        </div>
+      </div>
+
+      <div class="table-scroll" style="margin-top:16px;">
+        <table>
+          <thead>
+            <tr>
+              <th>NISN</th>
+              <th>Nama Siswa</th>
+              <th>Status Kehadiran</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyAbsensiSiswa">
+            <tr>
+              <td colspan="3" style="text-align:center;color:var(--text-muted);padding:28px;">
+                <i class="fa-solid fa-filter me-1"></i> Silakan pilih Jalur, Tingkat, dan Kelas di atas.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="tugas" class="section">
+    <div id="viewMainTugas">
+      <div class="page-head">
+        <div class="page-head-title">
+          <h1>Kelola Tugas Siswa</h1>
+          <p>Pilih kelas target, terbitkan tugas baru, dan kelola penilaian pengumpulan tugas.</p>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <h3 style="margin-top:0;font-size:15px;margin-bottom:12px;"><i class="fa-solid fa-plus-circle text-primary me-1"></i> Buat &amp; Terbitkan Tugas Baru</h3>
+
+        <div class="filter-beruntun-grid" style="margin-bottom:12px;">
+          <div class="filter-box-item">
+            <label><i class="fa-solid fa-layer-group text-primary me-1"></i> Jalur Target:</label>
+            <div class="custom-select-wrap">
+              <button type="button" class="custom-select-btn" onclick="toggleDropdownAbsen('dropdownTugasJalur')">
+                <span id="lblTugasJalur">-- Pilih Jalur --</span>
+                <i class="fa-solid fa-chevron-down"></i>
+              </button>
+              <div class="custom-dropdown-menu" id="dropdownTugasJalur">
+                <div class="custom-option" onclick="pilihJalurTugas('Excellent')">
+                  <span><i class="fa-solid fa-star text-warning me-2"></i>Excellent (+)</span>
+                </div>
+                <div class="custom-option" onclick="pilihJalurTugas('Reguler')">
+                  <span><i class="fa-solid fa-user-check text-success me-2"></i>Reguler</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-box-item">
+            <label><i class="fa-solid fa-graduation-cap text-primary me-1"></i> Tingkat Target:</label>
+            <div class="custom-select-wrap">
+              <button type="button" class="custom-select-btn" id="btnTugasTingkat" onclick="toggleDropdownAbsen('dropdownTugasTingkat')" disabled>
+                <span id="lblTugasTingkat">-- Pilih Tingkat --</span>
+                <i class="fa-solid fa-chevron-down"></i>
+              </button>
+              <div class="custom-dropdown-menu" id="dropdownTugasTingkat">
+                <div class="custom-option" onclick="pilihTingkatTugas('10')">Kelas 10</div>
+                <div class="custom-option" onclick="pilihTingkatTugas('11')">Kelas 11</div>
+                <div class="custom-option" onclick="pilihTingkatTugas('12')">Kelas 12</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-box-item" style="grid-column: span 2;">
+            <label><i class="fa-solid fa-chalkboard text-primary me-1"></i> Kelas Target Spesifik:</label>
+            <div class="custom-select-wrap">
+              <button type="button" class="custom-select-btn" id="btnTugasKelasFix" onclick="toggleDropdownAbsen('dropdownTugasKelasFix')" disabled>
+                <span id="lblTugasKelasFix">-- Pilih Kelas Target --</span>
+                <i class="fa-solid fa-chevron-down"></i>
+              </button>
+              <div class="custom-dropdown-menu" id="dropdownTugasKelasFix"></div>
+            </div>
+          </div>
+        </div>
+
+        <input type="text" id="inputJudulTugas" class="form-control-custom" placeholder="Judul Tugas (contoh: Praktikum Algoritma Pemrograman)...">
+        <textarea id="inputDeskripsiTugas" class="form-control-custom" rows="3" style="margin-top:8px;resize:vertical;" placeholder="Deskripsi/Instruksi Tugas (Opsional)..."></textarea>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;">
+          <div>
+            <label style="font-size:11px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:2px;">Batas Tanggal Menyelesaikan:</label>
+            <input type="date" id="inputTglTugas" class="form-control-custom" style="margin-top:0;">
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:2px;">Batas Jam (WIB):</label>
+            <input type="time" id="inputJamTugas" value="23:59" class="form-control-custom" style="margin-top:0;">
+          </div>
+        </div>
+
+        <button class="btn-action" style="margin-top:14px;width:100%;" onclick="buatTugas()"><i class="fa-solid fa-paper-plane me-1"></i> Terbitkan Tugas Baru</button>
+      </div>
+
+      <div class="glass-card">
+        <h3 style="margin-top:0;font-size:15px;margin-bottom:12px;"><i class="fa-solid fa-list-check text-primary me-1"></i> Daftar Tugas Aktif</h3>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Judul Tugas</th>
+                <th>Kelas Target</th>
+                <th>Batas Waktu</th>
+                <th>Status Penilaian</th>
+                <th style="text-align:right;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyDaftarTugasAktif">
+              <tr>
+                <td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Memuat data tugas...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="viewPengumpulanSiswa" style="display:none;">
+      <div class="page-head">
+        <div class="page-head-title">
+          <h1>Pengumpulan Tugas: <span id="lblJudulTugasDetail">-</span></h1>
+          <p>Kelas: <b id="lblKelasTugasDetail">-</b> | Tenggat: <span id="lblDeadlineTugasDetail">-</span></p>
+        </div>
+        <button class="btn-back-header" onclick="kembaliKeDaftarTugas()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar Tugas</button>
+      </div>
+
+      <div class="glass-card table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>NISN</th>
+              <th>Nama Siswa</th>
+              <th>Status Pengumpulan</th>
+              <th>Waktu Kirim</th>
+              <th>Lampiran / Catatan</th>
+              <th>Nilai (0 - 100)</th>
+              <th style="text-align:right;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPengumpulanSiswa">
+            <tr>
+              <td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px;">Memuat data siswa...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="nilai" class="section">
+    <div class="page-head">
+      <div class="page-head-title">
+        <h1>Input &amp; Rekap Nilai Rata-Rata</h1>
+        <p>Lihat rekapitulasi nilai rata-rata tugas siswa berdasarkan kelas.</p>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <div class="filter-beruntun-grid" style="margin-bottom:16px;">
+        <div class="filter-box-item">
+          <label><i class="fa-solid fa-layer-group text-primary me-1"></i> Jalur / Sistem:</label>
+          <div class="custom-select-wrap">
+            <button type="button" class="custom-select-btn" onclick="toggleDropdownAbsen('dropdownNilaiJalur')">
+              <span id="lblNilaiJalur">-- Pilih Jalur --</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="custom-dropdown-menu" id="dropdownNilaiJalur">
+              <div class="custom-option" onclick="pilihJalurNilai('Excellent')">
+                <span><i class="fa-solid fa-star text-warning me-2"></i>Excellent (+)</span>
+              </div>
+              <div class="custom-option" onclick="pilihJalurNilai('Reguler')">
+                <span><i class="fa-solid fa-user-check text-success me-2"></i>Reguler</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-box-item">
+          <label><i class="fa-solid fa-graduation-cap text-primary me-1"></i> Tingkat Kelas:</label>
+          <div class="custom-select-wrap">
+            <button type="button" class="custom-select-btn" id="btnNilaiTingkat" onclick="toggleDropdownAbsen('dropdownNilaiTingkat')" disabled>
+              <span id="lblNilaiTingkat">-- Pilih Tingkat --</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="custom-dropdown-menu" id="dropdownNilaiTingkat">
+              <div class="custom-option" onclick="pilihTingkatNilai('10')">Kelas 10</div>
+              <div class="custom-option" onclick="pilihTingkatNilai('11')">Kelas 11</div>
+              <div class="custom-option" onclick="pilihTingkatNilai('12')">Kelas 12</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-box-item" style="grid-column: span 2;">
+          <label><i class="fa-solid fa-chalkboard text-primary me-1"></i> Kelas &amp; Rombel:</label>
+          <div class="custom-select-wrap">
+            <button type="button" class="custom-select-btn" id="btnNilaiKelasFix" onclick="toggleDropdownAbsen('dropdownNilaiKelasFix')" disabled>
+              <span id="lblNilaiKelasFix">-- Pilih Kelas --</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="custom-dropdown-menu" id="dropdownNilaiKelasFix"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>NISN</th>
+              <th>Nama Siswa</th>
+              <th>Total Tugas Diikuti</th>
+              <th>Rata-Rata Nilai Tugas</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyNilaiSiswa">
+            <tr>
+              <td colspan="4" style="text-align:center;color:var(--text-muted);padding:28px;">
+                <i class="fa-solid fa-filter me-1"></i> Silakan pilih Jalur, Tingkat, dan Kelas terlebih dahulu.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="bottom-nav">
+  <button class="bottom-tab active" onclick="switchTab('home', this)">
+    <i class="fa-solid fa-house"></i>
+    <span>Home</span>
+  </button>
+  <button class="bottom-tab" onclick="switchTab('total-kelas', this)">
+    <i class="fa-solid fa-layer-group"></i>
+    <span>Total Kelas</span>
+  </button>
+  <button class="bottom-tab" onclick="switchTab('absensi', this)">
+    <i class="fa-solid fa-clipboard-user"></i>
+    <span>Absensi</span>
+  </button>
+  <button class="bottom-tab" onclick="switchTab('tugas', this)">
+    <i class="fa-solid fa-book-open"></i>
+    <span>Tugas</span>
+  </button>
+  <button class="bottom-tab" onclick="switchTab('nilai', this)">
+    <i class="fa-solid fa-chart-simple"></i>
+    <span>Nilai</span>
+  </button>
+</nav>
+
+<script src="db-guru.js"></script>
+</body>
+</html>
