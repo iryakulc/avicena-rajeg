@@ -481,4 +481,157 @@ function inputNilaiTugasSiswa(tugasId, nisn, namaSiswa, nilaiLama) {
         });
       }
       localStorage.setItem('database_pengumpulan_tugas', JSON.stringify(listPengumpulan));
-      callAPI({ action: 'update
+      callAPI({ action: 'update_nilai', tugasId: tugasId, nisn: nisn, nilai: parseInt(result.value) });
+      const listTugas = JSON.parse(localStorage.getItem('database_tugas')) || [];
+      const tugas = listTugas.find(t => String(t.id) === String(tugasId));
+      if (tugas) renderPengumpulanSiswa(tugas);
+      Swal.fire({ icon: 'success', title: 'Nilai Disimpan!', text: 'Nilai ' + result.value + ' berhasil disimpan untuk ' + namaSiswa + '.', confirmButtonColor: '#10b981' });
+    }
+  });
+}
+
+function kembaliKeDaftarTugas() {
+  activeTugasDetailId = null;
+  document.getElementById('viewPengumpulanSiswa').style.display = 'none';
+  document.getElementById('viewMainTugas').style.display = 'block';
+  renderDaftarTugasAktif();
+}
+
+function pilihJalurNilai(jalurName) {
+  selectedNilaiJalur = jalurName;
+  document.getElementById('lblNilaiJalur').textContent = jalurName === 'Excellent' ? 'Excellent (+)' : 'Reguler';
+  document.getElementById('dropdownNilaiJalur').classList.remove('show');
+  selectedNilaiTingkat = null; selectedNilaiKelasFix = null;
+  document.getElementById('lblNilaiTingkat').textContent = '-- Pilih Tingkat --';
+  document.getElementById('lblNilaiKelasFix').textContent = '-- Pilih Kelas --';
+  document.getElementById('btnNilaiTingkat').disabled = false;
+  document.getElementById('btnNilaiKelasFix').disabled = true;
+  resetTabelNilai();
+}
+
+function pilihTingkatNilai(tingkatNum) {
+  selectedNilaiTingkat = tingkatNum;
+  document.getElementById('lblNilaiTingkat').textContent = 'Kelas ' + tingkatNum;
+  document.getElementById('dropdownNilaiTingkat').classList.remove('show');
+  populateDropdownNilaiKelasFix();
+}
+
+function populateDropdownNilaiKelasFix() {
+  const databaseSiswa = JSON.parse(localStorage.getItem('database_siswa')) || [];
+  const menuKelas = document.getElementById('dropdownNilaiKelasFix');
+  let filteredKelas = databaseSiswa.filter(s => {
+    const isExc = s.kelas.includes('+') || s.kelas.toLowerCase().includes('excellent');
+    const cocokJalur = selectedNilaiJalur === 'Excellent' ? isExc : !isExc;
+    const cocokTingkat = String(s.kelas).startsWith(String(selectedNilaiTingkat));
+    return cocokJalur && cocokTingkat;
+  }).map(s => s.kelas);
+  let listUnikKelas = Array.from(new Set(filteredKelas)).sort((a, b) => (parseInt(a) || 0) - (parseInt(b) || 0));
+  if (listUnikKelas.length === 0) {
+    menuKelas.innerHTML = '<div class="custom-option" style="color:#94a3b8;cursor:default;">Tidak ada kelas terdaftar</div>';
+  } else {
+    let html = '';
+    listUnikKelas.forEach(kName => {
+      html += '<div class="custom-option" onclick="pilihKelasFixNilai(\'' + kName + '\')"><span>' + kName + '</span><i class="fa-solid fa-chevron-right" style="font-size:10px;"></i></div>';
+    });
+    menuKelas.innerHTML = html;
+  }
+  document.getElementById('lblNilaiKelasFix').textContent = '-- Pilih Kelas --';
+  document.getElementById('btnNilaiKelasFix').disabled = false;
+  resetTabelNilai();
+}
+
+function pilihKelasFixNilai(namaKelas) {
+  selectedNilaiKelasFix = namaKelas;
+  document.getElementById('lblNilaiKelasFix').textContent = namaKelas;
+  document.getElementById('dropdownNilaiKelasFix').classList.remove('show');
+  muatTabelRekapNilai(namaKelas);
+}
+
+function muatTabelRekapNilai(namaKelas) {
+  const databaseSiswa = JSON.parse(localStorage.getItem('database_siswa')) || [];
+  const databaseTugas = JSON.parse(localStorage.getItem('database_tugas')) || [];
+  const listPengumpulan = JSON.parse(localStorage.getItem('database_pengumpulan_tugas')) || [];
+  const siswaInKelas = databaseSiswa.filter(s => s.kelas === namaKelas);
+  const tbody = document.getElementById('tbodyNilaiSiswa');
+  if (siswaInKelas.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px;">Belum ada siswa terdaftar di kelas <b>' + namaKelas + '</b>.</td></tr>';
+    return;
+  }
+  const tugasKelas = databaseTugas.filter(t => t.kelasTarget === namaKelas);
+  let html = '';
+  siswaInKelas.forEach(s => {
+    let totalNilai = 0, jumlahNilaiAda = 0;
+    tugasKelas.forEach(tgs => {
+      const p = listPengumpulan.find(item => String(item.tugasId) === String(tgs.id) && String(item.nisn) === String(s.nisn));
+      if (p && p.nilai !== undefined && p.nilai !== null && p.nilai !== '' && p.nilai !== '-') {
+        totalNilai += parseFloat(p.nilai); jumlahNilaiAda++;
+      }
+    });
+    let avgDisplay = '-';
+    if (jumlahNilaiAda > 0) avgDisplay = (totalNilai / jumlahNilaiAda).toFixed(1);
+    html += '<tr><td><b>' + (s.nisn || '-') + '</b></td><td style="font-weight:600;color:var(--navy-deep);">' + (s.nama || '-') + '</td><td>' + jumlahNilaiAda + ' dari ' + tugasKelas.length + ' Tugas</td><td><b style="font-size:16px;color:var(--royal);">' + avgDisplay + '</b></td></tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+function resetTabelNilai() {
+  const tbody = document.getElementById('tbodyNilaiSiswa');
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:28px;"><i class="fa-solid fa-filter me-1"></i> Silakan pilih Jalur, Tingkat, dan Kelas terlebih dahulu.</td></tr>';
+  }
+}
+
+function logoutGuru() {
+  Swal.fire({
+    title: 'Keluar Portal Guru?',
+    text: 'Sesi Anda akan diakhiri. Anda bisa kembali kapan saja.',
+    icon: 'question',
+    showCancelButton: true, confirmButtonColor: '#2563eb',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Ya, Keluar', cancelButtonText: 'Batal'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      localStorage.removeItem('active_guru');
+      window.location.href = 'index.html';
+    }
+  });
+}
+
+function hapusAkunGuru() {
+  Swal.fire({
+    title: 'Hapus Akun Permanen?',
+    text: 'Peringatan! Seluruh data akun Anda akan dihapus dari sistem.',
+    icon: 'warning',
+    showCancelButton: true, confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Ya, Hapus Akun', cancelButtonText: 'Batal'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      localStorage.removeItem('active_guru');
+      Swal.fire({ icon: 'success', title: 'Sesi Dihapus!', text: 'Anda telah keluar dari akun.', confirmButtonColor: '#2563eb' })
+        .then(() => { window.location.href = 'index.html'; });
+    }
+  });
+}
+
+function switchTab(sectionId, btnElement) {
+  document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+  const target = document.getElementById(sectionId);
+  if (target) target.classList.add('active');
+  document.querySelectorAll('.bottom-tab').forEach(tab => tab.classList.remove('active'));
+  if (btnElement) btnElement.classList.add('active');
+  else {
+    const tabMatch = document.querySelector('.bottom-tab[onclick*="\'' + sectionId + '\'"]');
+    if (tabMatch) tabMatch.classList.add('active');
+  }
+  if (sectionId === 'total-kelas') {
+    document.getElementById('viewDaftarKelas').style.display = 'block';
+    document.getElementById('viewSiswaInKelas').style.display = 'none';
+    document.getElementById('viewDetailProfilSiswa').style.display = 'none';
+  } else if (sectionId === 'tugas') {
+    document.getElementById('viewMainTugas').style.display = 'block';
+    document.getElementById('viewPengumpulanSiswa').style.display = 'none';
+    renderDaftarTugasAktif();
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
