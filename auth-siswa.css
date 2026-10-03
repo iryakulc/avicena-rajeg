@@ -1,0 +1,56 @@
+:root {
+  --navy-deep: #0f172a;
+  --royal: #2563eb;
+  --emerald: #10b981;
+  --primary-glow: #3b82f6;
+  --accent-glow: #8b5cf6;
+  --glass-bg: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.22);
+}
+
+html, body {
+  width: 100%; max-width: 100%; overflow-x: hidden; margin: 0; padding: 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: radial-gradient(circle at top left, #1e1b4b, #0f172a 60%, #020617);
+  min-height: 100vh; min-height: 100dvh; color: #fff; display: flex; flex-direction: column; position: relative;
+}
+
+a { text-decoration: none; }
+
+.navbar-glass {
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); z-index: 1030;
+}
+.navbar-brand-custom { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; color: #fff !important; }
+.navbar-brand-custom .brand-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--royal), var(--emerald)); display: flex; align-items: center; justify-content: center; color: #fff; }
+.navbar-nav .nav-link { color: rgba(255, 255, 255, 0.85) !important; font-weight: 500; font-size: 0.92rem; padding: 8px 16px !important; border-radius: 8px; }
+
+.auth-container { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; padding: 100px 16px 40px; z-index: 10; box-sizing: border-box; }
+.auth-card {
+  background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4); width: 100%; max-width: 480px; margin: 0 auto; padding: 28px 22px; box-sizing: border-box;
+}
+
+.auth-title { font-size: 1.65rem; font-weight: 800; text-align: center; margin-bottom: 20px; background: linear-gradient(135deg, #ffffff, #cbd5e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.form-group-custom { margin-bottom: 16px; }
+.form-label-custom { font-size: 0.82rem; font-weight: 600; color: rgba(255, 255, 255, 0.88); margin-bottom: 6px; display: block; }
+.form-control-glass { background: rgba(255, 255, 255, 0.07) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; border-radius: 12px !important; padding: 11px 14px !important; color: #fff !important; font-size: 0.9rem !important; }
+
+.segmented-control { display: flex; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); padding: 4px; border-radius: 12px; gap: 4px; }
+.segmented-control input[type="radio"] { display: none; }
+.segmented-control label { flex: 1; text-align: center; padding: 8px 6px; font-size: 0.78rem; font-weight: 700; color: rgba(255, 255, 255, 0.7); border-radius: 8px; cursor: pointer; margin: 0; }
+.segmented-control input[type="radio"]:checked + label { background: linear-gradient(135deg, var(--primary-glow), var(--accent-glow)); color: #fff; }
+
+.jurusan-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.jurusan-card-radio input[type="radio"] { display: none; }
+.jurusan-card-label { display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 10px; cursor: pointer; height: 64px; }
+.jurusan-card-radio input[type="radio"]:checked + .jurusan-card-label { background: rgba(59, 130, 246, 0.25); border-color: var(--primary-glow); }
+
+.btn-glass { background: linear-gradient(135deg, #ffffff, #e2e8f0); color: #0f172a; font-weight: 800; padding: 12px; border-radius: 12px; border: none; width: 100%; margin-top: 10px; font-size: 0.92rem; }
+.auth-links { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-top: 12px; }
+.auth-links a { color: rgba(255, 255, 255, 0.7); }
+.toggle-text { text-align: center; margin-top: 20px; font-size: 0.85rem; color: rgba(255, 255, 255, 0.75); }
+.toggle-text a { color: #60a5fa; font-weight: 700; margin-left: 5px; }
+
+@media (max-width: 576px) { .auth-card { padding: 22px 16px; border-radius: 16px; } .auth-title { font-size: 1.4rem; } .jurusan-grid { grid-template-columns: 1fr; } }
