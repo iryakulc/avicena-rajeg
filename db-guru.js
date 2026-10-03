@@ -21,51 +21,57 @@ document.addEventListener('DOMContentLoaded', function() {
   const sessionData = localStorage.getItem('active_guru');
   if (!sessionData) {
     Swal.fire({
-      icon: 'warning',
-      title: 'Akses Ditolak!',
-      text: 'Silakan login atau daftar akun guru terlebih dahulu.',
+      icon: 'warning', title: 'Akses Ditolak!',
+      text: 'Silakan login dulu.',
       confirmButtonColor: '#2563eb'
-    }).then(() => {
-      window.top.location.href = 'auth-guru.html';
-    });
+    }).then(() => { window.top.location.href = 'auth-guru.html'; });
     return;
   }
 
-  try {
-    currentGuru = JSON.parse(sessionData);
-    populateGuruData(currentGuru);
+  currentGuru = JSON.parse(sessionData);
 
-    Swal.fire({ title: 'Sinkronisasi data...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  // ✅ 1. LANGSUNG tampilkan dashboard dari localStorage (tidak tunggu backend)
+  populateGuruData(currentGuru);
+  syncDataSiswa();
+  syncStatTugas();
+  renderDaftarTugasAktif();
 
-    google.script.run
-      .withSuccessHandler(function(bundle) {
-        localStorage.setItem('database_siswa', JSON.stringify(bundle.siswa || []));
-        localStorage.setItem('database_guru', JSON.stringify(bundle.guru || []));
-        localStorage.setItem('database_tugas', JSON.stringify(bundle.tugas || []));
-        localStorage.setItem('database_absensi', JSON.stringify(bundle.absensi || []));
-        localStorage.setItem('database_pengumpulan_tugas', JSON.stringify(bundle.pengumpulan || []));
+  const tgl = document.getElementById('tglAbsensiGuru');
+  if (tgl && !tgl.value) tgl.value = new Date().toISOString().split('T')[0];
 
-        syncDataSiswa();
-        syncStatTugas();
-        renderDaftarTugasAktif();
-
-        const tgl = document.getElementById('tglAbsensiGuru');
-        if (tgl && !tgl.value) tgl.value = new Date().toISOString().split('T')[0];
-
-        Swal.close();
-      })
-      .withFailureHandler(function(err) {
-        console.error('Sync error:', err);
-        syncDataSiswa();
-        syncStatTugas();
-        renderDaftarTugasAktif();
-        Swal.close();
-      })
-      .getAllDataForGuru();
-  } catch (e) {
-    console.error('Error parsing data guru:', e);
-  }
+  // ✅ 2. Sync di BACKGROUND — tidak menghalangi UI
+  syncBackgroundGuru();
 });
+
+// Sync background — tidak blocking
+function syncBackgroundGuru() {
+  if (!currentGuru) return;
+
+  setTimeout(function() {
+    console.warn('Sync masih jalan di background...');
+  }, 30000);
+
+  google.script.run
+    .withSuccessHandler(function(bundle) {
+      if (!bundle) return;
+
+      localStorage.setItem('database_siswa', JSON.stringify(bundle.siswa || []));
+      localStorage.setItem('database_guru', JSON.stringify(bundle.guru || []));
+      localStorage.setItem('database_tugas', JSON.stringify(bundle.tugas || []));
+      localStorage.setItem('database_absensi', JSON.stringify(bundle.absensi || []));
+      localStorage.setItem('database_pengumpulan_tugas', JSON.stringify(bundle.pengumpulan || []));
+
+      // Refresh tampilan dengan data baru
+      syncDataSiswa();
+      syncStatTugas();
+      renderDaftarTugasAktif();
+    })
+    .withFailureHandler(function(err) {
+      console.error('Sync error:', err);
+      // Diam-diam fallback — dashboard tetap jalan
+    })
+    .getAllDataForGuru();
+}
 
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.custom-select-wrap')) {
@@ -105,13 +111,13 @@ function editProfilGuru() {
       '<input type="text" id="swalNamaGuru" class="form-control-custom" value="' + (currentGuru.nama || '') + '">' +
       '<label style="font-weight:700;display:block;margin-top:10px;margin-bottom:4px;">No. WhatsApp:</label>' +
       '<input type="tel" id="swalHpGuru" class="form-control-custom" value="' + (currentGuru.hp || '') + '">' +
-      '<label style="font-weight:700;display:block;margin-top:10px;margin-bottom:4px;">Mata Pelajaran Umum:</label>' +
+      '<label style="font-weight:700;display:block;margin-top:10px;margin-bottom:4px;">Mapel Umum:</label>' +
       '<input type="text" id="swalMapelUmum" class="form-control-custom" value="' + (currentGuru.mapelUmum || '') + '">' +
-      '<label style="font-weight:700;display:block;margin-top:10px;margin-bottom:4px;">Mata Pelajaran Kejuruan:</label>' +
+      '<label style="font-weight:700;display:block;margin-top:10px;margin-bottom:4px;">Mapel Kejuruan:</label>' +
       '<input type="text" id="swalMapelKejuruan" class="form-control-custom" value="' + (currentGuru.mapelKejuruan || '') + '">' +
       '</div>',
     showCancelButton: true,
-    confirmButtonText: 'Simpan Perubahan',
+    confirmButtonText: 'Simpan',
     cancelButtonText: 'Batal',
     confirmButtonColor: '#2563eb',
     preConfirm: () => {
@@ -119,18 +125,15 @@ function editProfilGuru() {
       const hp = document.getElementById('swalHpGuru').value.trim();
       const mapelUmum = document.getElementById('swalMapelUmum').value.trim();
       const mapelKejuruan = document.getElementById('swalMapelKejuruan').value.trim();
-      if (!nama || !hp) {
-        Swal.showValidationMessage('Nama dan No. WhatsApp wajib diisi!');
-        return false;
-      }
-      return { nama: nama, hp: hp, mapelUmum: mapelUmum, mapelKejuruan: mapelKejuruan };
+      if (!nama || !hp) { Swal.showValidationMessage('Nama dan HP wajib!'); return false; }
+      return { nama, hp, mapelUmum, mapelKejuruan };
     }
   }).then((result) => {
     if (result.isConfirmed && result.value) {
       currentGuru = Object.assign({}, currentGuru, result.value);
       localStorage.setItem('active_guru', JSON.stringify(currentGuru));
       populateGuruData(currentGuru);
-      Swal.fire({ icon: 'success', title: 'Profil Diperbarui!', text: 'Data profil Anda telah berhasil disimpan (sesi lokal).', confirmButtonColor: '#10b981' });
+      Swal.fire({ icon: 'success', title: 'Tersimpan!', confirmButtonColor: '#10b981' });
     }
   });
 }
@@ -138,11 +141,13 @@ function editProfilGuru() {
 /* ============ SINKRONISASI ============ */
 function syncDataSiswa() {
   const databaseSiswa = JSON.parse(localStorage.getItem('database_siswa')) || [];
-  document.getElementById('statTotalSiswa').textContent = databaseSiswa.length;
+  const elTotalSiswa = document.getElementById('statTotalSiswa');
+  if (elTotalSiswa) elTotalSiswa.textContent = databaseSiswa.length;
 
   const kelasSet = new Set();
   databaseSiswa.forEach(s => { if (s.kelas) kelasSet.add(s.kelas); });
-  document.getElementById('statTotalKelas').textContent = kelasSet.size;
+  const elTotalKelas = document.getElementById('statTotalKelas');
+  if (elTotalKelas) elTotalKelas.textContent = kelasSet.size;
 
   const sortedKelasArray = Array.from(kelasSet).sort((a, b) => (parseInt(a) || 0) - (parseInt(b) || 0));
   renderDaftarKelas(sortedKelasArray, databaseSiswa);
@@ -159,7 +164,7 @@ function renderDaftarKelas(kelasArray, databaseSiswa) {
   if (!container) return;
 
   if (kelasArray.length === 0) {
-    container.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><i class="fa-solid fa-folder-open"></i><b>Belum Ada Data Kelas &amp; Siswa</b><p style="font-size:12px;margin-top:4px;">Data kelas akan muncul otomatis setelah siswa melakukan pendaftaran.</p></div>';
+    container.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><i class="fa-solid fa-folder-open"></i><b>Belum Ada Data Kelas</b><p style="font-size:12px;margin-top:4px;">Menunggu sinkronisasi dari server...</p></div>';
     return;
   }
 
@@ -169,7 +174,7 @@ function renderDaftarKelas(kelasArray, databaseSiswa) {
     const isExc = kName.includes('+') || kName.toLowerCase().includes('excellent');
     const badgeClass = isExc ? 'badge-exc' : 'badge-reg';
     const badgeText = isExc ? 'Excellent (+)' : 'Reguler';
-    html += '<div class="kelas-card-item" onclick="bukaDetailKelas(\'' + kName + '\')"><div><span class="kelas-badge ' + badgeClass + '">' + badgeText + '</span><h4 style="margin:6px 0 2px;font-size:16px;font-weight:800;">' + kName + '</h4><span style="font-size:12.5px;color:var(--text-muted);"><i class="fa-solid fa-users me-1"></i>' + jmlSiswa + ' Siswa Terdaftar</span></div><i class="fa-solid fa-chevron-right text-muted fs-5"></i></div>';
+    html += '<div class="kelas-card-item" onclick="bukaDetailKelas(\'' + kName + '\')"><div><span class="kelas-badge ' + badgeClass + '">' + badgeText + '</span><h4 style="margin:6px 0 2px;font-size:16px;font-weight:800;">' + kName + '</h4><span style="font-size:12.5px;color:var(--text-muted);"><i class="fa-solid fa-users me-1"></i>' + jmlSiswa + ' Siswa</span></div><i class="fa-solid fa-chevron-right text-muted fs-5"></i></div>';
   });
   container.innerHTML = html;
 }
@@ -267,7 +272,7 @@ function populateDropdownKelasFix() {
   let listUnikKelas = Array.from(new Set(filteredKelas)).sort((a, b) => (parseInt(a) || 0) - (parseInt(b) || 0));
 
   if (listUnikKelas.length === 0) {
-    menuKelas.innerHTML = '<div class="custom-option" style="color:#94a3b8;cursor:default;">Tidak ada kelas terdaftar</div>';
+    menuKelas.innerHTML = '<div class="custom-option" style="color:#94a3b8;cursor:default;">Tidak ada kelas</div>';
   } else {
     let html = '';
     listUnikKelas.forEach(kName => {
@@ -296,14 +301,14 @@ function muatTabelAbsensiFix(namaKelas) {
   const tbody = document.getElementById('tbodyAbsensiSiswa');
 
   if (siswaInKelas.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:24px;">Belum ada siswa terdaftar di kelas <b>' + namaKelas + '</b>.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:24px;">Belum ada siswa di kelas <b>' + namaKelas + '</b>.</td></tr>';
     return;
   }
   let html = '';
   siswaInKelas.forEach(s => {
     const dataAbsenSiswa = databaseAbsensi.find(a => String(a.nisn) === String(s.nisn) && String(a.tanggal) === String(tglAktif));
     let statusText = (dataAbsenSiswa && dataAbsenSiswa.status) ? dataAbsenSiswa.status : 'Alpha';
-    html += '<tr><td><b>' + (s.nisn || '-') + '</b></td><td style="font-weight:600;color:var(--navy-deep);">' + (s.nama || '-') + '</td><td style="font-weight:700;color:var(--navy-deep);">' + statusText + '</td></tr>';
+    html += '<tr><td><b>' + (s.nisn || '-') + '</b></td><td style="font-weight:600;">' + (s.nama || '-') + '</td><td style="font-weight:700;">' + statusText + '</td></tr>';
   });
   tbody.innerHTML = html;
 }
@@ -311,7 +316,7 @@ function muatTabelAbsensiFix(namaKelas) {
 function resetTabelAbsensi() {
   const tbody = document.getElementById('tbodyAbsensiSiswa');
   if (tbody) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:28px;"><i class="fa-solid fa-filter me-1"></i> Silakan pilih Kelas &amp; Rombel terlebih dahulu.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:28px;"><i class="fa-solid fa-filter me-1"></i> Pilih Kelas & Rombel dulu.</td></tr>';
   }
 }
 
@@ -349,7 +354,7 @@ function populateDropdownTugasKelasFix() {
   let listUnikKelas = Array.from(new Set(filteredKelas)).sort((a, b) => (parseInt(a) || 0) - (parseInt(b) || 0));
 
   if (listUnikKelas.length === 0) {
-    menuKelas.innerHTML = '<div class="custom-option" style="color:#94a3b8;cursor:default;">Tidak ada kelas terdaftar</div>';
+    menuKelas.innerHTML = '<div class="custom-option" style="color:#94a3b8;cursor:default;">Tidak ada kelas</div>';
   } else {
     let html = '';
     listUnikKelas.forEach(kName => {
@@ -369,17 +374,16 @@ function pilihKelasFixTugas(namaKelas) {
 
 function buatTugas() {
   if (!selectedTugasKelasFix) {
-    Swal.fire({ icon: 'warning', title: 'Pilih Kelas Target!', text: 'Silakan tentukan kelas target menggunakan filter beruntun.', confirmButtonColor: '#2563eb' });
+    Swal.fire({ icon: 'warning', title: 'Pilih Kelas Target dulu!' });
     return;
   }
-
   const judul = document.getElementById('inputJudulTugas').value.trim();
   const deskripsi = document.getElementById('inputDeskripsiTugas').value.trim();
   const tgl = document.getElementById('inputTglTugas').value;
   const jam = document.getElementById('inputJamTugas').value || '23:59';
 
   if (!judul || !tgl) {
-    Swal.fire({ icon: 'warning', title: 'Form Belum Lengkap', text: 'Judul tugas dan batas tanggal wajib diisi.', confirmButtonColor: '#2563eb' });
+    Swal.fire({ icon: 'warning', title: 'Judul & tanggal wajib!' });
     return;
   }
 
@@ -399,10 +403,9 @@ function buatTugas() {
   document.getElementById('inputJudulTugas').value = '';
   document.getElementById('inputDeskripsiTugas').value = '';
   document.getElementById('inputTglTugas').value = '';
-
   syncStatTugas();
   renderDaftarTugasAktif();
-  Swal.fire({ icon: 'success', title: 'Tugas Diterbitkan!', text: 'Tugas berhasil diterbitkan untuk kelas ' + selectedTugasKelasFix, confirmButtonColor: '#10b981' });
+  Swal.fire({ icon: 'success', title: 'Tugas Diterbitkan!', timer: 1200, showConfirmButton: false });
 }
 
 function renderDaftarTugasAktif() {
@@ -414,7 +417,7 @@ function renderDaftarTugasAktif() {
   const listSiswa = JSON.parse(localStorage.getItem('database_siswa')) || [];
 
   if (listTugas.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px;">Belum ada tugas yang diterbitkan.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px;">Belum ada tugas.</td></tr>';
     return;
   }
 
@@ -426,12 +429,12 @@ function renderDaftarTugasAktif() {
 
     let badgePenilaian = '';
     if (totalSiswaKelas > 0 && sudahDinilaiCount >= totalSiswaKelas) {
-      badgePenilaian = '<span class="badge-status-tugas status-done"><i class="fa-solid fa-check-circle me-1"></i>Selesai Dinilai</span>';
+      badgePenilaian = '<span class="badge-status-tugas status-done"><i class="fa-solid fa-check-circle me-1"></i>Selesai</span>';
     } else {
-      badgePenilaian = '<span class="badge-status-tugas status-pending"><i class="fa-solid fa-clock me-1"></i>Belum / Sebagian Dinilai</span>';
+      badgePenilaian = '<span class="badge-status-tugas status-pending"><i class="fa-solid fa-clock me-1"></i>Sebagian</span>';
     }
 
-    html += '<tr><td style="font-weight:700;color:var(--royal);">' + tgs.judul + '</td><td><span class="kelas-badge badge-exc">' + tgs.kelasTarget + '</span></td><td><i class="fa-solid fa-calendar text-muted me-1"></i>' + tgs.deadlineTgl + ' (' + tgs.deadlineJam + ')</td><td>' + badgePenilaian + '</td><td style="text-align:right;"><button class="btn-action" style="padding:6px 12px;font-size:12px;" onclick="bukaDetailPengumpulanTugas(\'' + tgs.id + '\')"><i class="fa-solid fa-eye me-1"></i> Lihat Pengumpulan</button></td></tr>';
+    html += '<tr><td style="font-weight:700;color:var(--royal);">' + tgs.judul + '</td><td><span class="kelas-badge badge-exc">' + tgs.kelasTarget + '</span></td><td><i class="fa-solid fa-calendar text-muted me-1"></i>' + tgs.deadlineTgl + ' (' + tgs.deadlineJam + ')</td><td>' + badgePenilaian + '</td><td style="text-align:right;"><button class="btn-action" style="padding:6px 12px;font-size:12px;" onclick="bukaDetailPengumpulanTugas(\'' + tgs.id + '\')"><i class="fa-solid fa-eye me-1"></i> Lihat</button></td></tr>';
   });
   tbody.innerHTML = html;
 }
@@ -457,7 +460,7 @@ function renderPengumpulanSiswa(tugas) {
   const siswaInKelas = databaseSiswa.filter(s => s.kelas === tugas.kelasTarget);
 
   if (siswaInKelas.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px;">Belum ada siswa terdaftar di kelas <b>' + tugas.kelasTarget + '</b>.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px;">Belum ada siswa di kelas <b>' + tugas.kelasTarget + '</b>.</td></tr>';
     return;
   }
 
@@ -467,13 +470,12 @@ function renderPengumpulanSiswa(tugas) {
 
     let statusHtml = '', waktuHtml = '-', fileHtml = '-', nilaiDisplay = '-';
     if (dataKirim) {
-      statusHtml = '<span style="color:var(--emerald);font-weight:700;"><i class="fa-solid fa-circle-check me-1"></i>Sudah Mengumpulkan</span>';
+      statusHtml = '<span style="color:var(--emerald);font-weight:700;"><i class="fa-solid fa-circle-check me-1"></i>Sudah</span>';
       waktuHtml = dataKirim.waktu || '-';
 
-      // Gabung link file + catatan
       const fileParts = [];
       if (dataKirim.fileUrl) {
-        fileParts.push('<a href="' + dataKirim.fileUrl + '" target="_blank" style="color:#2563eb;font-weight:700;text-decoration:none;">📎 ' + (dataKirim.fileName || 'Buka File') + '</a>');
+        fileParts.push('<a href="' + dataKirim.fileUrl + '" target="_blank" style="color:#2563eb;font-weight:700;text-decoration:none;">📎 ' + (dataKirim.fileName || 'Buka') + '</a>');
       }
       if (dataKirim.catatanAtauFile) {
         fileParts.push('<div style="font-size:11px;color:#64748b;margin-top:4px;">' + dataKirim.catatanAtauFile + '</div>');
@@ -482,7 +484,7 @@ function renderPengumpulanSiswa(tugas) {
 
       nilaiDisplay = (dataKirim.nilai !== undefined && dataKirim.nilai !== null && dataKirim.nilai !== '') ? dataKirim.nilai : '-';
     } else {
-      statusHtml = '<span style="color:var(--danger);font-weight:700;"><i class="fa-solid fa-circle-xmark me-1"></i>Belum Mengumpulkan</span>';
+      statusHtml = '<span style="color:var(--danger);font-weight:700;"><i class="fa-solid fa-circle-xmark me-1"></i>Belum</span>';
     }
 
     html += '<tr><td><b>' + (s.nisn || '-') + '</b></td><td style="font-weight:600;">' + (s.nama || '-') + '</td><td>' + statusHtml + '</td><td>' + waktuHtml + '</td><td>' + fileHtml + '</td><td><b style="font-size:15px;color:var(--royal);">' + nilaiDisplay + '</b></td><td style="text-align:right;"><button class="btn-action" style="padding:5px 10px;font-size:11px;" onclick="inputNilaiTugasSiswa(\'' + tugas.id + '\', \'' + s.nisn + '\', \'' + (s.nama || '').replace(/\'/g, "\\\'") + '\', \'' + nilaiDisplay + '\')"><i class="fa-solid fa-pen-to-square me-1"></i> Nilai</button></td></tr>';
@@ -494,17 +496,16 @@ function inputNilaiTugasSiswa(tugasId, nisn, namaSiswa, nilaiLama) {
   const currentVal = nilaiLama !== '-' ? nilaiLama : '';
   Swal.fire({
     title: 'Beri Nilai: ' + namaSiswa,
-    text: 'Masukkan nilai tugas (Rentang 0 s/d 100):',
     input: 'number',
     inputValue: currentVal,
     inputAttributes: { min: 0, max: 100, step: 1 },
     showCancelButton: true,
-    confirmButtonText: 'Simpan Nilai',
+    confirmButtonText: 'Simpan',
     cancelButtonText: 'Batal',
     confirmButtonColor: '#2563eb',
     preConfirm: (value) => {
       if (value === '' || value < 0 || value > 100) {
-        Swal.showValidationMessage('Nilai harus berupa angka antara 0 hingga 100!');
+        Swal.showValidationMessage('Nilai 0-100!');
         return false;
       }
       return value;
@@ -531,7 +532,7 @@ function inputNilaiTugasSiswa(tugasId, nisn, namaSiswa, nilaiLama) {
       const tugas = listTugas.find(t => String(t.id) === String(tugasId));
       if (tugas) renderPengumpulanSiswa(tugas);
 
-      Swal.fire({ icon: 'success', title: 'Nilai Disimpan!', text: 'Nilai ' + result.value + ' berhasil disimpan untuk ' + namaSiswa + '.', confirmButtonColor: '#10b981' });
+      Swal.fire({ icon: 'success', title: 'Tersimpan!', timer: 1200, showConfirmButton: false });
     }
   });
 }
@@ -578,7 +579,7 @@ function populateDropdownNilaiKelasFix() {
   let listUnikKelas = Array.from(new Set(filteredKelas)).sort((a, b) => (parseInt(a) || 0) - (parseInt(b) || 0));
 
   if (listUnikKelas.length === 0) {
-    menuKelas.innerHTML = '<div class="custom-option" style="color:#94a3b8;cursor:default;">Tidak ada kelas terdaftar</div>';
+    menuKelas.innerHTML = '<div class="custom-option" style="color:#94a3b8;cursor:default;">Tidak ada kelas</div>';
   } else {
     let html = '';
     listUnikKelas.forEach(kName => {
@@ -607,7 +608,7 @@ function muatTabelRekapNilai(namaKelas) {
   const tbody = document.getElementById('tbodyNilaiSiswa');
 
   if (siswaInKelas.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px;">Belum ada siswa terdaftar di kelas <b>' + namaKelas + '</b>.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px;">Belum ada siswa di kelas <b>' + namaKelas + '</b>.</td></tr>';
     return;
   }
 
@@ -625,7 +626,7 @@ function muatTabelRekapNilai(namaKelas) {
     let avgDisplay = '-';
     if (jumlahNilaiAda > 0) avgDisplay = (totalNilai / jumlahNilaiAda).toFixed(1);
 
-    html += '<tr><td><b>' + (s.nisn || '-') + '</b></td><td style="font-weight:600;color:var(--navy-deep);">' + (s.nama || '-') + '</td><td>' + jumlahNilaiAda + ' dari ' + tugasKelas.length + ' Tugas</td><td><b style="font-size:16px;color:var(--royal);">' + avgDisplay + '</b></td></tr>';
+    html += '<tr><td><b>' + (s.nisn || '-') + '</b></td><td style="font-weight:600;">' + (s.nama || '-') + '</td><td>' + jumlahNilaiAda + '/' + tugasKelas.length + '</td><td><b style="font-size:16px;color:var(--royal);">' + avgDisplay + '</b></td></tr>';
   });
   tbody.innerHTML = html;
 }
@@ -633,21 +634,16 @@ function muatTabelRekapNilai(namaKelas) {
 function resetTabelNilai() {
   const tbody = document.getElementById('tbodyNilaiSiswa');
   if (tbody) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:28px;"><i class="fa-solid fa-filter me-1"></i> Silakan pilih Jalur, Tingkat, dan Kelas terlebih dahulu.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:28px;"><i class="fa-solid fa-filter me-1"></i> Pilih Jalur, Tingkat, dan Kelas dulu.</td></tr>';
   }
 }
 
-/* ============ LOGOUT & HAPUS AKUN ============ */
+/* ============ LOGOUT & HAPUS ============ */
 function logoutGuru() {
   Swal.fire({
-    title: 'Keluar Portal Guru?',
-    text: 'Sesi Anda akan diakhiri. Anda bisa kembali kapan saja.',
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonColor: '#2563eb',
-    cancelButtonColor: '#64748b',
-    confirmButtonText: 'Ya, Keluar',
-    cancelButtonText: 'Batal'
+    title: 'Keluar?', icon: 'question',
+    showCancelButton: true, confirmButtonColor: '#2563eb', cancelButtonColor: '#64748b',
+    confirmButtonText: 'Ya, Keluar', cancelButtonText: 'Batal'
   }).then((result) => {
     if (result.isConfirmed) {
       localStorage.removeItem('active_guru');
@@ -659,34 +655,23 @@ function logoutGuru() {
 function hapusAkunGuru() {
   Swal.fire({
     title: 'Hapus Akun Permanen?',
-    text: 'Peringatan! Data akun Anda akan dihapus dari database dan tidak dapat dikembalikan.',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#ef4444',
-    cancelButtonColor: '#64748b',
-    confirmButtonText: 'Ya, Hapus Permanen',
-    cancelButtonText: 'Batal'
+    text: 'Data akan dihapus dari database.',
+    icon: 'warning', showCancelButton: true,
+    confirmButtonColor: '#ef4444', cancelButtonColor: '#64748b',
+    confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal'
   }).then((result) => {
     if (result.isConfirmed) {
       Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-      const identifier = currentGuru.nama || currentGuru.hp;
       google.script.run
         .withSuccessHandler(function(res) {
           localStorage.removeItem('active_guru');
-          Swal.fire({
-            icon: res.status === 'success' ? 'success' : 'info',
-            title: res.status === 'success' ? 'Akun Terhapus!' : 'Info',
-            text: res.message || 'Akun telah dihapus dari sistem.',
-            confirmButtonColor: '#2563eb'
-          }).then(() => {
-            window.top.location.href = 'index.html';
-          });
+          Swal.fire({ icon: 'success', title: 'Terhapus!', text: res.message, confirmButtonColor: '#2563eb' })
+            .then(() => { window.top.location.href = 'index.html'; });
         })
         .withFailureHandler(function(err) {
           Swal.fire({ icon: 'error', title: 'Gagal', text: err.message });
         })
-        .deleteGuru(identifier);
+        .deleteGuru(currentGuru.nama || currentGuru.hp);
     }
   });
 }
