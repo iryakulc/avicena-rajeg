@@ -39,6 +39,7 @@
 
 <main>
 
+  <!-- ================= 1. HOME ================= -->
   <section id="home" class="section active">
     <div class="page-head">
       <div class="page-head-title">
@@ -93,6 +94,7 @@
     </div>
   </section>
 
+  <!-- ================= 2. TOTAL KELAS ================= -->
   <section id="total-kelas" class="section">
     <div id="viewDaftarKelas">
       <div class="page-head">
@@ -102,7 +104,6 @@
         </div>
         <button class="btn-back-header" onclick="navigasiKembaliKelas()"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
       </div>
-
       <div class="kelas-grid" id="containerDaftarKelas"></div>
     </div>
 
@@ -114,7 +115,6 @@
         </div>
         <button class="btn-back-header" onclick="navigasiKembaliKelas()"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
       </div>
-
       <div class="glass-card table-scroll">
         <table>
           <thead>
@@ -138,7 +138,6 @@
         </div>
         <button class="btn-back-header" onclick="navigasiKembaliKelas()"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
       </div>
-
       <div class="glass-card">
         <div class="profile-info-grid" style="grid-template-columns: repeat(2, 1fr);">
           <div class="info-item"><label>Nama Lengkap Siswa</label><div id="detailSiswaNama">-</div></div>
@@ -153,6 +152,7 @@
     </div>
   </section>
 
+  <!-- ================= 3. ABSENSI ================= -->
   <section id="absensi" class="section">
     <div class="page-head">
       <div class="page-head-title">
@@ -234,12 +234,13 @@
     </div>
   </section>
 
+  <!-- ================= 4. TUGAS ================= -->
   <section id="tugas" class="section">
     <div id="viewMainTugas">
       <div class="page-head">
         <div class="page-head-title">
           <h1>Kelola Tugas Siswa</h1>
-          <p>Pilih kelas target, terbitkan tugas baru, dan kelola penilaian pengumpulan tugas.</p>
+          <p>Pilih kelas target, terbitkan tugas baru (dengan file), dan kelola penilaian.</p>
         </div>
       </div>
 
@@ -306,7 +307,24 @@
           </div>
         </div>
 
-        <button class="btn-action" style="margin-top:14px;width:100%;" onclick="buatTugas()"><i class="fa-solid fa-paper-plane me-1"></i> Terbitkan Tugas Baru</button>
+        <!-- ✅ UPLOAD FILE UNTUK TUGAS -->
+        <div style="margin-top:14px;padding:12px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;">
+          <label style="font-size:12px;font-weight:700;color:var(--navy-deep);display:block;margin-bottom:6px;">
+            <i class="fa-solid fa-paperclip text-primary me-1"></i> Lampiran File Tugas (Opsional):
+          </label>
+          <input type="file" id="inputFileTugas"
+            accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar"
+            onchange="handleFileTugas(this)"
+            style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;background:#fff;">
+          <div id="fileInfoTugas" style="font-size:11px;color:#64748b;margin-top:6px;"></div>
+          <div style="font-size:10px;color:#94a3b8;margin-top:4px;">
+            Format: Foto, Video, PDF, Word, Excel, PPT, ZIP. Maks 10MB.
+          </div>
+        </div>
+
+        <button class="btn-action" style="margin-top:14px;width:100%;" onclick="buatTugas()">
+          <i class="fa-solid fa-paper-plane me-1"></i> Terbitkan Tugas Baru
+        </button>
       </div>
 
       <div class="glass-card">
@@ -347,10 +365,10 @@
             <tr>
               <th>NISN</th>
               <th>Nama Siswa</th>
-              <th>Status Pengumpulan</th>
+              <th>Status</th>
               <th>Waktu Kirim</th>
               <th>Lampiran / Catatan</th>
-              <th>Nilai (0 - 100)</th>
+              <th>Nilai</th>
               <th style="text-align:right;">Aksi</th>
             </tr>
           </thead>
@@ -364,6 +382,7 @@
     </div>
   </section>
 
+  <!-- ================= 5. NILAI ================= -->
   <section id="nilai" class="section">
     <div class="page-head">
       <div class="page-head-title">
@@ -443,6 +462,7 @@
 
 </main>
 
+<!-- BOTTOM NAVIGATION -->
 <nav class="bottom-nav">
   <button class="bottom-tab active" onclick="switchTab('home', this)">
     <i class="fa-solid fa-house"></i>
